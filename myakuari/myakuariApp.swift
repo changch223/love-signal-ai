@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct myakuariApp: App {
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,

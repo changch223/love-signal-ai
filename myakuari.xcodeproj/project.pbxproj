@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		578B8D672DAA1E3A00573192 /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = 578B8D662DAA1E3A00573192 /* GoogleGenerativeAI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		578B8D432DAA13F500573192 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				578B8D672DAA1E3A00573192 /* GoogleGenerativeAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = myakuari;
 			packageProductDependencies = (
+				578B8D662DAA1E3A00573192 /* GoogleGenerativeAI */,
 			);
 			productName = myakuari;
 			productReference = 578B8D2F2DAA13F400573192 /* myakuari.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 578B8D262DAA13F400573192;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				578B8D652DAA1E3A00573192 /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 578B8D302DAA13F400573192 /* Products */;
 			projectDirPath = "";
@@ -591,6 +600,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		578B8D652DAA1E3A00573192 /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/generative-ai-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		578B8D662DAA1E3A00573192 /* GoogleGenerativeAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 578B8D652DAA1E3A00573192 /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
+			productName = GoogleGenerativeAI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 578B8D272DAA13F400573192 /* Project object */;
 }
