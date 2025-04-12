@@ -130,7 +130,7 @@ struct ContentView: View {
         
         let imageDescription = selectedImage != nil ? "画像が提供されています。" : "画像データはありません。"
         
-        // 要求するプロンプトを作成
+        // 1. 組成最終 prompt
         let overallPrompt = """
         以下の説明に基づき、総合感情指数（1〜100）、信頼度（1〜100）、1文の評価理由、および追加入力の提案を提供してください。
         純粋な JSON フォーマットで返してください：
@@ -147,48 +147,93 @@ struct ContentView: View {
         対話内容:
         \(conversationText)
         """
+
+        // 2. Cloud Run Proxy 的 URL
+        guard let url = URL(string: "https://gemini-api-key-proxy-731897587704.us-central1.run.app") else {
+            errorMessage = "無効なURLです"
+            isLoading = false
+            return
+        }
         
-        // 👇 這裡改用剛剛定義的 analysisResultSchema
-        let config = GenerationConfig(
-            temperature: 0.0,
-            responseMIMEType: "application/json",
-            responseSchema: analysisResultSchema
-        )
+        // 3. 組成 Cloud Run 需要的 payload
+        let payload: [String: Any] = [
+            "model_name": "gemini-2.0-flash",
+            "contents": [
+                [
+                    "parts": [
+                        ["text": overallPrompt]
+                    ]
+                ]
+            ],
+            "generationConfig": [
+                "temperature": 0.0,
+                "topP": 1.0,
+                "topK": 1,
+                "maxOutputTokens": 512
+            ]
+        ]
         
-        let model = GenerativeModel(name: "gemini-2.0-flash", apiKey: APIKey.default, generationConfig: config)
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            errorMessage = "リクエスト作成エラー"
+            isLoading = false
+            return
+        }
         
-        Task {
-            do {
-                let response: GenerateContentResponse
-                if let image = selectedImage {
-                    response = try await model.generateContent(overallPrompt, image)
-                } else {
-                    response = try await model.generateContent(overallPrompt)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer vanila20180417", forHTTPHeaderField: "Authorization") // 這裡帶你的 SECRET_TOKEN
+        request.httpBody = jsonData
+
+        // 4. 發送 API 請求
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+            
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.errorMessage = "APIエラー: \(error.localizedDescription)"
                 }
-                
-                if let text = response.text {
+                return
+            }
+            
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    self.errorMessage = "データなし"
+                }
+                return
+            }
+            
+            do {
+                // 解析 Cloud Run Proxy 回傳的 response
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let candidates = json["candidates"] as? [[String: Any]],
+                   let firstCandidate = candidates.first,
+                   let content = firstCandidate["content"] as? [String: Any],
+                   let parts = content["parts"] as? [[String: Any]],
+                   let text = parts.first?["text"] as? String {
+
+                    // text 是 JSON 字串，要 decode 成 AnalysisResult
                     let jsonData = Data(text.utf8)
                     let decodedResult = try JSONDecoder().decode(AnalysisResult.self, from: jsonData)
-                    
+
                     DispatchQueue.main.async {
                         self.analysisResult = decodedResult
-                        self.isLoading = false
                     }
                 } else {
                     DispatchQueue.main.async {
-                        self.errorMessage = "API 回傳無有效文字內容。"
-                        self.isLoading = false
+                        self.errorMessage = "APIフォーマットエラー"
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    self.errorMessage = "API 呼び出しエラー: \(error.localizedDescription)"
-                    self.isLoading = false
+                    self.errorMessage = "デコードエラー: \(error.localizedDescription)"
                 }
-                print("API 呼び出しエラー: \(error.localizedDescription)")
             }
-        }
+        }.resume()
     }
+
 }
 
 struct ContentView_Previews: PreviewProvider {
