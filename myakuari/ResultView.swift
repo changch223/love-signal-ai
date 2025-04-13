@@ -1,22 +1,25 @@
-//
-//  ResultView.swift
-//  myakuari
-//
-//  Created by chang chiawei on 2025-04-13.
-//
-
 import SwiftUI
+import AVFoundation
 
 struct ResultView: View {
     let result: AnalysisResult
     @Environment(\.presentationMode) var presentationMode
+    
+    @State private var showDialog = false
+    @State private var rotateHeart = false
+    @State private var showParticles = false
+    @State private var isButtonPressed = false
+
+    
+    // 使用 SoundManager
+    @StateObject private var soundManager = SoundManager()
     
     var body: some View {
         ZStack {
             // 背景漸層
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color(red: 0.9, green: 0.95, blue: 1.0), // 淡藍色
+                    Color(red: 0.9, green: 0.95, blue: 1.0),
                     Color.white
                 ]),
                 startPoint: .top,
@@ -26,8 +29,6 @@ struct ResultView: View {
             
             ScrollView {
                 VStack(spacing: 30) {
-                    
-                    // 上方標題
                     VStack(spacing: 10) {
                         Text("AI恋愛分析結果")
                             .font(.largeTitle)
@@ -42,7 +43,6 @@ struct ResultView: View {
                     
                     // 結果顯示區塊
                     VStack(alignment: .leading, spacing: 20) {
-                        
                         // 成為情侶的可能性
                         VStack(alignment: .leading, spacing: 8) {
                             Text("カップルになる可能性")
@@ -94,8 +94,8 @@ struct ResultView: View {
                     .shadow(radius: 8)
                     .padding()
                     
-                    // 返回按鈕
                     Button(action: {
+                        ButtonSoundPlayer.playSound() // 🔊 播放可愛按鈕音效
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         Text("戻る")
@@ -103,11 +103,83 @@ struct ResultView: View {
                             .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color(red: 1.0, green: 0.6, blue: 0.7))
+                            .background(Color.pink)
                             .cornerRadius(12)
                             .shadow(radius: 5)
                     }
                     .padding()
+                }
+            }
+            
+            // 🎉 豪華版 Celebration Dialog（新版）
+            if showDialog {
+                ZStack {
+                    PetalBackground()
+                        .opacity(showParticles ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.5), value: showParticles)
+                    
+                    VStack(spacing: 16) {
+                        // 脈あり！ 漸層文字
+                        Text("脈あり！💖")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color(red: 1.0, green: 0.5, blue: 0.7), Color(red: 1.0, green: 0.6, blue: 0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: Color.pink.opacity(0.3), radius: 3, x: 0, y: 2)
+                        
+                        // 說明文字
+                        Text("🎉🎉🎉🎉🎉🎉 ")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                        
+                        // 可愛按鈕
+                        Button(action: {
+                            //ButtonSoundPlayer.playSound() // 🔊 播放可愛按鈕音效
+                            isButtonPressed = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                isButtonPressed = false
+                                showDialog = false // 按一下後稍微延遲，然後關掉Dialog
+                            }
+                        }) {
+                            Text("流石です！")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 48)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .fill(Color(red: 1.0, green: 0.5, blue: 0.7))
+                                )
+                        }
+                        .padding(.top, 10)
+                    }
+                    .padding(.vertical, 30)
+                    .padding(.horizontal, 24)
+                    .background(
+                        Color.white
+                            .cornerRadius(24)
+                            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                    )
+                    .padding(.horizontal, 30)
+                    .transition(.scale)
+                }
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .navigationBarHidden(true)
+        .onAppear {
+            if result.couple_possibility >= 70 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    showDialog = true
+                    rotateHeart = true
+                    showParticles = true
+                    soundManager.playSound()  // 呼叫 SoundManager 播放音效
                 }
             }
         }

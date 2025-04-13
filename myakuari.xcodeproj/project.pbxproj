@@ -33,9 +33,34 @@
 		578B8D4C2DAA13F500573192 /* myakuariUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = myakuariUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		575351A42DAC648400411132 /* Exceptions for "myakuari" folder in "myakuariTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Audio/click.mp3,
+				Audio/myakuari.mp3,
+				Audio/success.mp3,
+			);
+			target = 578B8D412DAA13F500573192 /* myakuariTests */;
+		};
+		575351A52DAC648400411132 /* Exceptions for "myakuari" folder in "myakuariUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Audio/click.mp3,
+				Audio/myakuari.mp3,
+				Audio/success.mp3,
+			);
+			target = 578B8D4B2DAA13F500573192 /* myakuariUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		578B8D312DAA13F400573192 /* myakuari */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				575351A42DAC648400411132 /* Exceptions for "myakuari" folder in "myakuariTests" target */,
+				575351A52DAC648400411132 /* Exceptions for "myakuari" folder in "myakuariUITests" target */,
+			);
 			path = myakuari;
 			sourceTree = "<group>";
 		};
