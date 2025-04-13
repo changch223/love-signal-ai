@@ -3,10 +3,10 @@ import GoogleGenerativeAI
 
 // Gemini 回傳的分析結果
 struct AnalysisResult: Codable {
-    let comprehensive_emotional_index: Int
-    let confidence_score: Int
-    let rating_reason: String
-    let supplement_suggestion: String
+    let couple_possibility: Int
+    let judgment_reason: String
+    let improvement_suggestion: String
+    let encouragement_message: String
 }
 
 // API 錯誤回傳結構
@@ -20,6 +20,10 @@ struct APIErrorResponse: Codable {
 }
 
 struct AnalysisView: View {
+    @State private var navigateToResult = false
+    @State private var showSuccessAnimation = false
+
+    
     // 文字（對話或輔助說明）
     @State private var conversationText = ""
     // 最多可上傳 3 張圖
@@ -39,10 +43,10 @@ struct AnalysisView: View {
         Schema(
             type: .object,
             properties: [
-                "comprehensive_emotional_index": Schema(type: .integer),
-                "confidence_score": Schema(type: .integer),
-                "rating_reason": Schema(type: .string),
-                "supplement_suggestion": Schema(type: .string)
+                "couple_possibility": Schema(type: .integer),
+                "judgment_reason": Schema(type: .string),
+                "improvement_suggestion": Schema(type: .string),
+                "encouragement_message": Schema(type: .string)
             ]
         )
     }
@@ -74,7 +78,7 @@ struct AnalysisView: View {
                             Text("1〜3枚の写真をアップロードしてね")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
-                            Text("二人の関係をいちばんよく表す写真や\n会話スクショを選んでください（各1MB以内）")
+                            Text("二人の関係をいちばんよく表す写真や\n会話スクショを選んでください")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3).opacity(0.8))
                                 .multilineTextAlignment(.center)
@@ -85,12 +89,12 @@ struct AnalysisView: View {
                         
                         // 輸入區
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("関係を教えてね（300字以内）")
+                            Text("補足あれば何でも入れてね (オプション)")
                                 .font(.headline)
                                 .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
                             
                             TextEditor(text: $conversationText)
-                                .frame(height: 150)
+                                .frame(height: 100)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
@@ -124,8 +128,14 @@ struct AnalysisView: View {
                         
                         // 分析結果
                         if let result = analysisResult {
-                            resultSection(result)
-                                .transition(.opacity)
+                            NavigationLink(
+                                destination: ResultView(result: result),
+                                isActive: $navigateToResult,
+                                label: {
+                                    EmptyView()
+                                }
+                            )
+                            .hidden()
                         }
                         
                         // 錯誤訊息
@@ -157,7 +167,29 @@ struct AnalysisView: View {
                     }
                 }
             }
-        }
+        }.overlay(
+            Group {
+                if showSuccessAnimation {
+                    VStack {
+                        Text("🎉")
+                            .font(.system(size: 80))
+                            .scaleEffect(showSuccessAnimation ? 1.2 : 0.8)
+                            .animation(.easeInOut(duration: 0.3).repeatCount(2, autoreverses: true), value: showSuccessAnimation)
+
+                        Text("分析完成！")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(.pink)
+                            .padding(.top, 10)
+                            .opacity(showSuccessAnimation ? 1 : 0)
+                            .animation(.easeInOut(duration: 0.5), value: showSuccessAnimation)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.white.opacity(0.7))
+                    .transition(.opacity)
+                }
+            }
+        )
     }
     
     // MARK: - 圖片顯示區
@@ -238,10 +270,10 @@ struct AnalysisView: View {
     // MARK: - 分析結果區塊
     private func resultSection(_ result: AnalysisResult) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("総合感情指数: \(result.comprehensive_emotional_index)")
-            Text("信頼度: \(result.confidence_score)")
-            Text("評価理由: \(result.rating_reason)")
-            Text("補足提案: \(result.supplement_suggestion)")
+            Text("カップルになる可能性: \(result.couple_possibility)")
+            Text("判定理由: \(result.judgment_reason)")
+            Text("改善できるポイント: \(result.improvement_suggestion)")
+            Text("応援メッセージ: \(result.encouragement_message)")
         }
         .padding()
         .background(Color.green.opacity(0.1))
@@ -293,55 +325,83 @@ struct AnalysisView: View {
     func runAnalysis() {
         // 對話內容或圖片必須至少有一項
         guard !conversationText.isEmpty || !selectedImages.isEmpty else {
-            errorMessage = "対話内容または画像を入力してください。"
+            errorMessage = "画像または補足内容を入力してください。"
             return
         }
         errorMessage = nil
         isLoading = true
         
-        let imageDescription = !selectedImages.isEmpty ?
-            "画像が\(selectedImages.count)枚提供されています。" :
-            "画像データはありません。"
+        // STEP 1: 準備 system_instruction 與 conversation content 部分
         
-        let overallPrompt = """
-        以下の説明に基づき、総合感情指数（1〜100）、信頼度（1〜100）、1文の評価理由、および追加入力の提案を提供してください。
-        純粋な JSON フォーマットで返してください：
-        {
-          "comprehensive_emotional_index": number,
-          "confidence_score": number,
-          "rating_reason": "summary sentence",
-          "supplement_suggestion": "additional info suggestion"
-        }
-        説明：
-        画像説明:
-        \(imageDescription)
+        // 定義 system_instruction 文字內容（與你提供的一致）
+        let systemInstructionText = """
+        あなたは恋愛の専門家です。提供されたすべての写真と補足内容を総合的に分析し、二つの対象が「カップル」になれる可能性を判断し、次の4つの項目を日本語で回答してください。
+        対象は人間同士に限らず、人間と動物、人間と物、物同士など、どのような組み合わせでもかまいません。
         
-        対話内容:
-        \(conversationText)
+        - カップルになる可能性（1〜100の数字）
+        - すべての写真と補足内容を簡単にまとめた判定理由（3文）
+        - より仲良くなるためのアドバイス（3文）
+        - 応援メッセージ（3文）
+        
+        親しみやすく、優しい口調で回答してください。
         """
         
+        // 組成 system_instruction 的 JSON 結構
+        let systemInstructionObject: [String: Any] = [
+            "parts": [
+                ["text": systemInstructionText]
+            ]
+        ]
+        
+        // 組成 conversation content 的部分（只包含使用者對話內容）
+        let conversationPart: [String: Any] = [
+            "role": "user",
+            "parts": [
+                ["text": "補足内容:\n\(conversationText)"]
+            ]
+        ]
+        // 先將 conversationPart 放入 contents 陣列內
+        var contents: [[String: Any]] = [conversationPart]
+        
+        // 將多張圖片以 inline_data 依序放入 contents 內
+        for img in selectedImages {
+            let compressedData = compressImage(img)
+            let base64String = compressedData.base64EncodedString()
+            
+            let imagePart: [String: Any] = [
+                "role": "user",
+                "parts": [
+                    [
+                        "inline_data": [
+                            "mime_type": "image/jpeg",
+                            "data": base64String
+                        ]
+                    ]
+                ]
+            ]
+            contents.append(imagePart)
+        }
+        
+        // STEP 2: 組成完整的 Payload，並更新 generationConfig
+        let payload: [String: Any] = [
+            "model_name": "gemini-2.0-flash",
+            "system_instruction": systemInstructionObject,
+            "contents": contents,
+            "generationConfig": [
+                "temperature": 0.3,
+                "topP": 0.95,
+                "topK": 10,
+                "maxOutputTokens": 512,
+                // 其他設定由 proxy 端補上 response_mime_type 與 response_schema
+            ]
+        ]
+        
+        // STEP 3: 發送至 Cloud Run Proxy
         guard let url = URL(string: "https://gemini-api-key-proxy-731897587704.us-central1.run.app") else {
             self.errorMessage = "無効なURLです"
             self.isLoading = false
             return
         }
-        
-        let payload: [String: Any] = [
-            "model_name": "gemini-2.0-flash",
-            "contents": [
-                [
-                    "parts": [
-                        ["text": overallPrompt]
-                    ]
-                ]
-            ],
-            "generationConfig": [
-                "temperature": 0.0,
-                "topP": 1.0,
-                "topK": 1,
-                "maxOutputTokens": 512
-            ]
-        ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
             self.errorMessage = "リクエスト作成エラー"
@@ -352,7 +412,7 @@ struct AnalysisView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        // 這裡要放你自己的 TOKEN
+        // 這裡放你自己的 Secret Token
         request.setValue("Bearer vanila20180417", forHTTPHeaderField: "Authorization")
         request.httpBody = jsonData
         
@@ -367,7 +427,6 @@ struct AnalysisView: View {
                 }
                 return
             }
-            
             guard let data = data else {
                 DispatchQueue.main.async {
                     self.errorMessage = "データなし"
@@ -376,26 +435,46 @@ struct AnalysisView: View {
             }
             
             do {
-                // 解析 Cloud Run Proxy 回傳的 response
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let candidates = json["candidates"] as? [[String: Any]],
-                   let firstCandidate = candidates.first,
-                   let content = firstCandidate["content"] as? [String: Any],
-                   let parts = content["parts"] as? [[String: Any]],
-                   let text = parts.first?["text"] as? String {
-
-                    let jsonData = Data(text.utf8)
-                    let decodedResult = try JSONDecoder().decode(AnalysisResult.self, from: jsonData)
-
-                    DispatchQueue.main.async {
-                        self.analysisResult = decodedResult
+                // 先嘗試把 data 轉成 JSON
+                if let rawJson = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    
+                    // 先印出整包 JSON
+                    print("=== RAW JSON ===\n\(rawJson)\n=========")
+                    
+                    // 再照原本的流程解析
+                    if let candidates = rawJson["candidates"] as? [[String: Any]],
+                       let firstCandidate = candidates.first,
+                       let content = firstCandidate["content"] as? [String: Any],
+                       let parts = content["parts"] as? [[String: Any]],
+                       let text = parts.first?["text"] as? String {
+                        
+                        // text 是 Gemini 回來的 JSON 字串
+                        let jsonData = Data(text.utf8)
+                        let decodedResult = try JSONDecoder().decode(AnalysisResult.self, from: jsonData)
+                        
+                        DispatchQueue.main.async {
+                            self.analysisResult = decodedResult
+                            self.showSuccessAnimation = true   // 🎉 先顯示成功動畫
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1秒後跳轉
+                                self.showSuccessAnimation = false
+                                self.navigateToResult = true
+                            }
+                        }
+                        
+                    } else {
+                        // 如果不是你想要的格式
+                        DispatchQueue.main.async {
+                            self.errorMessage = "APIフォーマットエラー"
+                        }
                     }
                 } else {
+                    // 如果連 JSON 都 parse 不起來
                     DispatchQueue.main.async {
-                        self.errorMessage = "APIフォーマットエラー"
+                        self.errorMessage = "JSON解析失敗"
                     }
                 }
             } catch {
+                // 如果 decode AnalysisResult 時出錯
                 DispatchQueue.main.async {
                     self.errorMessage = "デコードエラー: \(error.localizedDescription)"
                 }
