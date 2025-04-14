@@ -1,0 +1,55 @@
+//
+//  Localizable.strings (Chinese, Simplified)
+//  myakuari
+//
+//  Created by chang chiawei on 2025-04-13.
+//
+
+"title_text" = "恋爱信号AI判定APP！";
+"subtitle_text" = "TA对你有感觉吗？AI马上告诉你！";
+"button_text" = "AI探测暧昧信号，脱单快一步！";
+
+"title_ai_analysis" = "❤️ 恋爱信号AI分析";
+"photo_upload_prompt" = "上传1–3张照片";
+"photo_upload_instruction" = "选择最能代表你们关系的\n照片或聊天截图";
+"supplementary_input" = "添加备注内容（可选）";
+"select_photo_button" = "选择图片";
+"add_more_photo_button" = "继续添加图片";
+"start_analysis_button" = "开始判定";
+"loading_analysis" = "分析中...";
+"error_prefix" = "错误：";
+"error_no_input" = "请上传照片或输入备注内容。";
+"error_invalid_url" = "无效的URL。";
+"error_create_request" = "创建请求失败。";
+"error_api" = "API错误：%@";
+"error_no_data" = "未收到数据。";
+"error_json_parse" = "解析JSON失败。";
+"error_api_format" = "API格式错误。";
+"error_decode" = "解码错误：%@";
+"analysis_complete" = "分析完成！";
+"no_image_selected" = "未选择图片";
+
+
+"gemini_system_prompt" = "你是一位恋爱专家。请根据提供的所有照片和补充内容，全面分析并判断两个对象成为「伴侣」的可能性。对象不限于人与人，可为人与动物、人与物品、物品之间等等。请以亲切、温暖的语气，用简体中文回答以下项目：
+
+- 成为伴侣的可能性 (1〜100数字)
+- 根据提供的照片与补充内容的简短判断理由 (3句话)
+- 改善关系的建议 (3句话)
+- 鼓励讯息 (3句话)
+";
+
+
+"result_title" = "AI恋爱分析结果";
+"result_subtitle" = "一起看看你们的未来吧！";
+"result_couple_possibility_title" = "脱单机率";
+"result_judgment_reason_title" = "心动解析";
+"result_improvement_title" = "关系升温小诀窍";
+"result_encouragement_title" = "恋爱能量站";
+"result_back_button" = "返回";
+"celebration_title" = "有戏哦！💖";
+"celebration_message" = "🎉🎉🎉🎉🎉🎉";
+"celebration_button" = "太棒了！";
+
+
+"disclaimer_text" = "AI的回答并不一定完全准确，且本应用不承担任何责任。";
+

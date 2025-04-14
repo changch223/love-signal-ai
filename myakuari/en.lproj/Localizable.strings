@@ -1,0 +1,48 @@
+//
+//  Localizable.strings (English)
+//  myakuari
+//
+//  Created by chang chiawei on 2025-04-13.
+//
+
+"title_text" = "Love Signal AI Judge!";
+"subtitle_text" = "AI instantly judges your love chance!";
+"button_text" = "Start Judging Now";
+
+"title_ai_analysis" = "❤️ Love Signal AI Analysis";
+"photo_upload_prompt" = "Upload 1–3 photos";
+"photo_upload_instruction" = "Choose photos or chat screenshots\nthat best show your relationship";
+"supplementary_input" = "Add any notes (optional)";
+"select_photo_button" = "Select Photo";
+"add_more_photo_button" = "Add More Photos";
+"start_analysis_button" = "Start Judging";
+"loading_analysis" = "Analyzing...";
+"error_prefix" = "Error: ";
+"error_no_input" = "Please upload a photo or enter some notes.";
+"error_invalid_url" = "Invalid URL.";
+"error_create_request" = "Failed to create request.";
+"error_api" = "API Error: %@";
+"error_no_data" = "No data received.";
+"error_json_parse" = "Failed to parse JSON.";
+"error_api_format" = "API format error.";
+"error_decode" = "Decoding Error: %@";
+"analysis_complete" = "Analysis Complete!";
+"no_image_selected" = "No photo selected";
+
+
+"gemini_system_prompt" = "You are a love expert. Analyze all provided images and context comprehensively, determining the relationship compatibility between two entities, whether human-human, human-animal, human-object, or object-object. Please respond warmly and kindly in English with these items:\n- Compatibility percentage (1-100)\n- Brief summary of judgment reason based on provided photos and context (3 sentences)\n- Advice for improving the relationship (3 sentences)\n- Encouraging message (3 sentences)";
+
+
+"result_title" = "AI Love Analysis Result";
+"result_subtitle" = "Let's see your future together!";
+"result_couple_possibility_title" = "Chance of Becoming a Couple";
+"result_judgment_reason_title" = "Reason for Judgment";
+"result_improvement_title" = "Advice to Get Closer";
+"result_encouragement_title" = "Encouragement Message";
+"result_back_button" = "Go Back";
+"celebration_title" = "Love Signal! 💖";
+"celebration_message" = "🎉🎉🎉🎉🎉🎉";
+"celebration_button" = "Amazing!";
+
+
+"disclaimer_text" = "AI responses may not always be accurate and are for reference only.";

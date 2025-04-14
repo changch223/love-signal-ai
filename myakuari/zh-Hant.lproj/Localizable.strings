@@ -1,0 +1,54 @@
+//
+//  Localizable.strings (Chinese (Traditional))
+//  myakuari
+//
+//  Created by chang chiawei on 2025-04-13.
+//
+
+"title_text" = "戀愛訊號AI判定APP！";
+"subtitle_text" = "一秒看穿戀愛可能性，別錯過好感訊號！";
+"button_text" = "一鍵偵測戀愛訊號！";
+
+"title_ai_analysis" = "❤️ 戀愛訊號AI分析";
+"photo_upload_prompt" = "上傳1–3張照片";
+"photo_upload_instruction" = "選擇最能代表你們關係的\n照片或聊天截圖";
+"supplementary_input" = "補充備註（可選）";
+"select_photo_button" = "選擇圖片";
+"add_more_photo_button" = "繼續新增圖片";
+"start_analysis_button" = "開始判定";
+"loading_analysis" = "分析中...";
+"error_prefix" = "錯誤：";
+"error_no_input" = "請上傳照片或輸入備註內容。";
+"error_invalid_url" = "無效的URL。";
+"error_create_request" = "建立請求失敗。";
+"error_api" = "API錯誤：%@";
+"error_no_data" = "未收到資料。";
+"error_json_parse" = "解析JSON失敗。";
+"error_api_format" = "API格式錯誤。";
+"error_decode" = "解碼錯誤：%@";
+"analysis_complete" = "分析完成！";
+"no_image_selected" = "尚未選擇圖片";
+
+
+"gemini_system_prompt" = "你是一位戀愛專家。請根據提供的所有照片和補充內容，全面分析並判斷兩個對象成為「伴侶」的可能性。對象不限於人與人，可為人與動物、人與物品、物品之間等等。請以親切、溫暖的語氣，用繁體中文回答以下項目：
+
+- 成為伴侶的可能性 (1〜100數字)
+- 根據提供的照片與補充內容的簡短判斷理由 (3句話)
+- 改善關係的建議 (3句話)
+- 鼓勵訊息 (3句話)
+";
+
+
+"result_title" = "AI戀愛分析結果";
+"result_subtitle" = "一起來看看你們的未來！";
+"result_couple_possibility_title" = "戀情萌芽指數";
+"result_judgment_reason_title" = "小小分析報告";
+"result_improvement_title" = "戀愛小貼士";
+"result_encouragement_title" = "心動加油站";
+"result_back_button" = "返回";
+"celebration_title" = "戀愛警報！💖";
+"celebration_message" = "🎉🎉🎉🎉🎉🎉";
+"celebration_button" = "太厲害了！";
+
+
+"disclaimer_text" = "AI的回答未必絕對正確，本應用亦不負任何責任。";

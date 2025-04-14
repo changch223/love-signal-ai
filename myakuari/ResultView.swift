@@ -30,12 +30,12 @@ struct ResultView: View {
             ScrollView {
                 VStack(spacing: 30) {
                     VStack(spacing: 10) {
-                        Text("AI恋愛分析結果")
+                        Text("result_title")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(Color(red: 0.3, green: 0.4, blue: 0.6))
                         
-                        Text("二人の未来を一緒に見てみよう")
+                        Text("result_subtitle")
                             .font(.headline)
                             .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.7))
                     }
@@ -45,7 +45,7 @@ struct ResultView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         // 成為情侶的可能性
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("カップルになる可能性")
+                            Text("result_couple_possibility_title")
                                 .font(.headline)
                                 .foregroundColor(.pink)
                             ProgressView(value: Float(result.couple_possibility), total: 100)
@@ -60,7 +60,7 @@ struct ResultView: View {
                         
                         // 判定理由
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("判定理由")
+                            Text("result_judgment_reason_title")
                                 .font(.headline)
                                 .foregroundColor(.gray)
                             Text(result.judgment_reason)
@@ -70,7 +70,7 @@ struct ResultView: View {
                         
                         // 改善建議
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("より仲良くなるためのアドバイス")
+                            Text("result_improvement_title")
                                 .font(.headline)
                                 .foregroundColor(.gray)
                             Text(result.improvement_suggestion)
@@ -80,7 +80,7 @@ struct ResultView: View {
                         
                         // 応援メッセージ
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("応援メッセージ")
+                            Text("result_encouragement_title")
                                 .font(.headline)
                                 .foregroundColor(.gray)
                             Text(result.encouragement_message)
@@ -98,7 +98,7 @@ struct ResultView: View {
                         ButtonSoundPlayer.playSound() // 🔊 播放可愛按鈕音效
                         presentationMode.wrappedValue.dismiss()
                     }) {
-                        Text("戻る")
+                        Text("result_back_button")
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding()
@@ -120,7 +120,7 @@ struct ResultView: View {
                     
                     VStack(spacing: 16) {
                         // 脈あり！ 漸層文字
-                        Text("脈あり！💖")
+                        Text("celebration_title")
                             .font(.system(size: 36, weight: .bold))
                             .foregroundStyle(
                                 LinearGradient(
@@ -132,7 +132,7 @@ struct ResultView: View {
                             .shadow(color: Color.pink.opacity(0.3), radius: 3, x: 0, y: 2)
                         
                         // 說明文字
-                        Text("🎉🎉🎉🎉🎉🎉 ")
+                        Text("celebration_message")
                             .font(.system(size: 16))
                             .foregroundColor(Color.gray)
                             .multilineTextAlignment(.center)
@@ -147,7 +147,7 @@ struct ResultView: View {
                                 showDialog = false // 按一下後稍微延遲，然後關掉Dialog
                             }
                         }) {
-                            Text("流石です！")
+                            Text("celebration_button")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.white)
                                 .padding(.vertical, 12)

@@ -52,12 +52,31 @@
 			);
 			target = 578B8D4B2DAA13F500573192 /* myakuariUITests */;
 		};
+		575351BB2DAC710600411132 /* Exceptions for "myakuari" folder in "myakuari" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"/Localized: Localizable.strings",
+			);
+			target = 578B8D2E2DAA13F400573192 /* myakuari */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		575351BC2DAC710600411132 /* Exceptions for "myakuari" folder in "Compile Sources" phase from "myakuari" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 578B8D2B2DAA13F400573192 /* Sources */;
+			membershipExceptions = (
+				"/Localized: Localizable.strings",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		578B8D312DAA13F400573192 /* myakuari */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				575351BB2DAC710600411132 /* Exceptions for "myakuari" folder in "myakuari" target */,
+				575351BC2DAC710600411132 /* Exceptions for "myakuari" folder in "Compile Sources" phase from "myakuari" target */,
 				575351A42DAC648400411132 /* Exceptions for "myakuari" folder in "myakuariTests" target */,
 				575351A52DAC648400411132 /* Exceptions for "myakuari" folder in "myakuariUITests" target */,
 			);
@@ -223,6 +242,9 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
+				ja,
 			);
 			mainGroup = 578B8D262DAA13F400573192;
 			minimizedProjectReferenceProxies = 1;
@@ -308,6 +330,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -369,6 +392,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";

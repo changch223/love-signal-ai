@@ -21,13 +21,13 @@ struct ContentView: View {
 
                 VStack(spacing: 50) {
                     VStack(spacing: 16) {
-                        Text("脈ありAIジャッジ！")
+                        Text("title_text")
                             .font(.system(size: 34, weight: .semibold))
                             .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
                             .multilineTextAlignment(.center)
                             .shadow(color: .white.opacity(0.5), radius: 3, x: 0, y: 1)
 
-                        Text("AIがあなたの恋のチャンスを瞬間判定！")
+                        Text("subtitle_text")
                             .font(.system(size: 18, weight: .regular))
                             .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.4).opacity(0.8))
                             .multilineTextAlignment(.center)
@@ -35,7 +35,7 @@ struct ContentView: View {
                     }
 
                     NavigationLink(destination: AnalysisView()) {
-                        Text("さっそくジャッジを開始")
+                        Text("button_text")
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding(.vertical, 16)
@@ -64,6 +64,7 @@ struct ContentView: View {
                     )
                 }
                 .padding()
+                
             }
             .navigationBarHidden(true)
         }

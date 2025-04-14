@@ -1,0 +1,54 @@
+//
+//  Localizable.strings (Japanese)
+//  myakuari
+//
+//  Created by chang chiawei on 2025-04-13.
+//
+"title_text" = "脈ありAIジャッジ！";
+"subtitle_text" = "AIがあなたの恋のチャンスを瞬間判定！";
+"button_text" = "さっそくジャッジを開始";
+
+"title_ai_analysis" = "❤️ 恋のAI分析";
+"photo_upload_prompt" = "1〜3枚の写真をアップロードしてね";
+"photo_upload_instruction" = "二人の関係をいちばんよく表す写真や\n会話スクショを選んでください";
+"supplementary_input" = "補足あれば何でも入れてね (オプション)";
+"select_photo_button" = "画像を選択";
+"add_more_photo_button" = "追加で画像を選択";
+"start_analysis_button" = "分析開始";
+"loading_analysis" = "分析中…";
+"error_prefix" = "エラー: ";
+"error_no_input" = "画像または補足内容を入力してください。";
+"error_invalid_url" = "無効なURLです";
+"error_create_request" = "リクエスト作成エラー";
+"error_api" = "APIエラー: %@";
+"error_no_data" = "データなし";
+"error_json_parse" = "JSON解析失敗";
+"error_api_format" = "APIフォーマットエラー";
+"error_decode" = "デコードエラー: %@";
+"analysis_complete" = "分析完成！";
+"no_image_selected" = "画像未選択";
+
+"gemini_system_prompt" = "あなたは恋愛の専門家です。提供されたすべての写真と補足内容を総合的に分析し、二つの対象が「カップル」になれる可能性を判断し、次の4つの項目を日本語で回答してください。
+        対象は人間同士に限らず、人間と動物、人間と物、物同士など、どのような組み合わせでもかまいません。
+        
+        - カップルになる可能性（1〜100の数字）
+        - すべての写真と補足内容を簡単にまとめた判定理由（3文）
+        - より仲良くなるためのアドバイス（3文）
+        - 応援メッセージ（3文）
+        
+        親しみやすく、優しい口調で回答してください。";
+
+
+"result_title" = "AI恋愛分析結果";
+"result_subtitle" = "二人の未来を一緒に見てみよう";
+"result_couple_possibility_title" = "カップルになる可能性";
+"result_judgment_reason_title" = "判定理由";
+"result_improvement_title" = "より仲良くなるためのアドバイス";
+"result_encouragement_title" = "応援メッセージ";
+"result_back_button" = "戻る";
+"celebration_title" = "脈あり！💖";
+"celebration_message" = "🎉🎉🎉🎉🎉🎉";
+"celebration_button" = "流石です！";
+
+"disclaimer_text" = "ＡＩ回答は必ずしも正しいとは限らず、一切の責任を負いません。";
+

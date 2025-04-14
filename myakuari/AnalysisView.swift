@@ -75,18 +75,18 @@ struct AnalysisView: View {
                     VStack(spacing: 30) {
                         // ❤️ 恋のAI分析標題與說明
                         VStack(spacing: 8) {
-                            Text("❤️ 恋のAI分析")
+                            Text("title_ai_analysis")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
                             
                             Label(
-                                title: { Text("1〜3枚の写真をアップロードしてね") },
+                                title: { Text("photo_upload_prompt") },
                                 icon: { Image(systemName: "camera") }
                             )
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
                             
-                            Text("二人の関係をいちばんよく表す写真や\n会話スクショを選んでください")
+                            Text("photo_upload_instruction")
                                 .font(.system(size: 13))
                                 .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3).opacity(0.6))
                                 .multilineTextAlignment(.center)
@@ -99,7 +99,7 @@ struct AnalysisView: View {
                         // ✍️ 補足輸入區
                         VStack(alignment: .leading, spacing: 8) {
                             Label(
-                                title: { Text("補足あれば何でも入れてね (オプション)") },
+                                title: { Text("supplementary_input") },
                                 icon: { Image(systemName: "pencil.and.outline") }
                             )
                             .font(.headline)
@@ -123,14 +123,14 @@ struct AnalysisView: View {
                         
                         // ⚡️ 分析開始按鈕
                         if isLoading {
-                            ProgressView("分析中…")
+                            ProgressView(LocalizedStringKey("loading_analysis"))
                                 .padding()
                         } else {
                             Button {
                                 runAnalysis()
                             } label: {
                                 Label(
-                                    title: { Text("分析開始") },
+                                    title: { Text("start_analysis_button") },
                                     icon: { Image(systemName: "bolt.fill") }
                                 )
                                 .font(.headline)
@@ -157,7 +157,7 @@ struct AnalysisView: View {
                         
                         // 錯誤訊息顯示
                         if let errorMessage = errorMessage {
-                            Text("エラー: \(errorMessage)")
+                            Text("\(NSLocalizedString("error_prefix", comment: "")) \(errorMessage)")
                                 .foregroundColor(.red)
                                 .padding()
                         }
@@ -171,6 +171,16 @@ struct AnalysisView: View {
                             )
                             .hidden()
                         }
+                        
+                        Spacer()  // <=== 中間空間撐開
+                        Spacer()  // <=== 中間空間撐開
+                        
+                        //免責
+                        Text("disclaimer_text")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.bottom, 16)
                     }
                     .padding()
                 }
@@ -207,7 +217,7 @@ struct AnalysisView: View {
                         .scaleEffect(showSuccessAnimation ? 1.2 : 0.8)
                         .animation(.easeInOut(duration: 0.3).repeatCount(2, autoreverses: true), value: showSuccessAnimation)
                     
-                    Text("分析完成！")
+                    Text("analysis_complete")
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(.pink)
@@ -229,7 +239,7 @@ struct AnalysisView: View {
                 Rectangle()
                     .fill(Color.gray.opacity(0.15))
                     .frame(height: 150)
-                    .overlay(Text("画像未選択").foregroundColor(.gray))
+                    .overlay(Text("no_image_selected").foregroundColor(.gray))
                     .cornerRadius(8)
             } else {
                 GeometryReader { geometry in
@@ -271,7 +281,7 @@ struct AnalysisView: View {
                     imageIndexToAdd = selectedImages.count
                     showImagePicker = true
                 } label: {
-                    Text(selectedImages.isEmpty ? "画像を選択" : "追加で画像を選択")
+                    Text(selectedImages.isEmpty ? "select_photo_button" : "add_more_photo_button")
                         .font(.headline)
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -324,35 +334,27 @@ struct AnalysisView: View {
     
     // MARK: - 分析執行
     func runAnalysis() {
-        guard !conversationText.isEmpty || !selectedImages.isEmpty else {
-            errorMessage = "画像または補足内容を入力してください。"
+        // 使用 localized 讀取錯誤文字
+        if conversationText.isEmpty && selectedImages.isEmpty {
+            errorMessage = NSLocalizedString("error_no_input", comment: "")
             return
         }
         errorMessage = nil
         isLoading = true
         
-        let systemInstructionText = """
-        あなたは恋愛の専門家です。提供されたすべての写真と補足内容を総合的に分析し、二つの対象が「カップル」になれる可能性を判断し、次の4つの項目を日本語で回答してください。
-        対象は人間同士に限らず、人間と動物、人間と物、物同士など、どのような組み合わせでもかまいません。
-        
-        - カップルになる可能性（1〜100の数字）
-        - すべての写真と補足内容を簡単にまとめた判定理由（3文）
-        - より仲良くなるためのアドバイス（3文）
-        - 応援メッセージ（3文）
-        
-        親しみやすく、優しい口調で回答してください。
-        """
-        
+        let systemInstructionText = NSLocalizedString("gemini_system_prompt", comment: "")
         let systemInstructionObject: [String: Any] = [
             "parts": [
                 ["text": systemInstructionText]
             ]
         ]
         
+        // 補充內容：使用 localized 補充前置字串
+        let conversationTextCombined = NSLocalizedString("supplementary_prefix", comment: "") + conversationText
         let conversationPart: [String: Any] = [
             "role": "user",
             "parts": [
-                ["text": "補足内容:\n\(conversationText)"]
+                ["text": conversationTextCombined]
             ]
         ]
         var contents: [[String: Any]] = [conversationPart]
@@ -388,13 +390,13 @@ struct AnalysisView: View {
         ]
         
         guard let url = URL(string: "https://gemini-api-key-proxy-731897587704.us-central1.run.app") else {
-            self.errorMessage = "無効なURLです"
+            self.errorMessage = NSLocalizedString("error_invalid_url", comment: "")
             self.isLoading = false
             return
         }
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
-            self.errorMessage = "リクエスト作成エラー"
+            self.errorMessage = NSLocalizedString("error_create_request", comment: "")
             self.isLoading = false
             return
         }
@@ -412,13 +414,14 @@ struct AnalysisView: View {
             
             if let error = error {
                 DispatchQueue.main.async {
-                    self.errorMessage = "APIエラー: \(error.localizedDescription)"
+                    // 使用 sprintf 格式化 localized 錯誤字串
+                    self.errorMessage = String(format: NSLocalizedString("error_api", comment: ""), error.localizedDescription)
                 }
                 return
             }
             guard let data = data else {
                 DispatchQueue.main.async {
-                    self.errorMessage = "データなし"
+                    self.errorMessage = NSLocalizedString("error_no_data", comment: "")
                 }
                 return
             }
@@ -447,17 +450,17 @@ struct AnalysisView: View {
                         
                     } else {
                         DispatchQueue.main.async {
-                            self.errorMessage = "APIフォーマットエラー"
+                            self.errorMessage = NSLocalizedString("error_api_format", comment: "")
                         }
                     }
                 } else {
                     DispatchQueue.main.async {
-                        self.errorMessage = "JSON解析失敗"
+                        self.errorMessage = NSLocalizedString("error_json_parse", comment: "")
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    self.errorMessage = "デコードエラー: \(error.localizedDescription)"
+                    self.errorMessage = String(format: NSLocalizedString("error_decode", comment: ""), error.localizedDescription)
                 }
             }
         }.resume()
