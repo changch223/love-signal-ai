@@ -173,14 +173,18 @@ struct AnalysisView: View {
                         }
                         
                         Spacer()  // <=== 中間空間撐開
-                        Spacer()  // <=== 中間空間撐開
+                        
                         
                         //免責
                         Text("disclaimer_text")
                             .font(.footnote)
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
-                            .padding(.bottom, 16)
+                            
+                        
+                        // 廣告放底部
+                        BannerAdView(adUnitID: "ca-app-pub-9275380963550837/6056788210")
+                            .frame(height: 50)
                     }
                     .padding()
                 }

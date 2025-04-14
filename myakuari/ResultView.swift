@@ -108,6 +108,9 @@ struct ResultView: View {
                             .shadow(radius: 5)
                     }
                     .padding()
+                    // 廣告放底部
+                    BannerAdView(adUnitID: "ca-app-pub-9275380963550837/6056788210")
+                        .frame(height: 50)
                 }
             }
             

@@ -1,0 +1,6 @@
+framework module Pods_myakuari {
+  umbrella header "Pods-myakuari-umbrella.h"
+
+  export *
+  module * { export * }
+}
