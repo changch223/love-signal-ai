@@ -438,7 +438,11 @@ struct AnalysisView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer vanila20180417", forHTTPHeaderField: "Authorization")
+        if let authorizationKey = Bundle.main.authorizationKey {
+            request.setValue("Bearer \(authorizationKey)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("⚠️ Error: Authorization key not found in Info.plist")
+        }
         request.httpBody = jsonData
         
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -511,5 +515,12 @@ extension UIApplication {
             .windows
             .first(where: { $0.isKeyWindow })?
             .rootViewController
+    }
+}
+
+// 一個小的 helper，從 Info.plist 讀取字串
+extension Bundle {
+    var authorizationKey: String? {
+        return infoDictionary?["API_AUTHORIZATION_KEY"] as? String
     }
 }

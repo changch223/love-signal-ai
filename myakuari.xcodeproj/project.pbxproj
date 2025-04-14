@@ -56,6 +56,7 @@
 		575351BB2DAC710600411132 /* Exceptions for "myakuari" folder in "myakuari" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"/Localized: InfoPlist.strings",
 				"/Localized: Localizable.strings",
 				Info.plist,
 			);
@@ -68,6 +69,7 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 578B8D2B2DAA13F400573192 /* Sources */;
 			membershipExceptions = (
+				"/Localized: InfoPlist.strings",
 				"/Localized: Localizable.strings",
 			);
 		};
