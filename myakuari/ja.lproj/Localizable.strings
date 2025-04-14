@@ -14,9 +14,9 @@
 "supplementary_input" = "補足あれば何でも入れてね (オプション)";
 "select_photo_button" = "画像を選択";
 "add_more_photo_button" = "追加で画像を選択";
-"start_analysis_button" = "分析開始";
+"start_analysis_button" = "タップして広告後に判定";
 "loading_analysis" = "分析中…";
-"error_prefix" = "エラー: ";
+"error_prefix" = "分析失敗: ";
 "error_no_input" = "画像または補足内容を入力してください。";
 "error_invalid_url" = "無効なURLです";
 "error_create_request" = "リクエスト作成エラー";
@@ -52,3 +52,5 @@
 
 "disclaimer_text" = "ＡＩ回答は必ずしも正しいとは限らず、一切の責任を負いません。";
 
+"AdNotReadyTitle" = "広告の準備ができていません";
+"AdNotReadyMessage" = "しばらくしてからもう一度お試しください。";

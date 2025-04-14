@@ -15,9 +15,9 @@
 "supplementary_input" = "添加备注内容（可选）";
 "select_photo_button" = "选择图片";
 "add_more_photo_button" = "继续添加图片";
-"start_analysis_button" = "开始判定";
+"start_analysis_button" = "支持一下后开始判定";
 "loading_analysis" = "分析中...";
-"error_prefix" = "错误：";
+"error_prefix" = "分析失败：";
 "error_no_input" = "请上传照片或输入备注内容。";
 "error_invalid_url" = "无效的URL。";
 "error_create_request" = "创建请求失败。";
@@ -53,3 +53,7 @@
 
 "disclaimer_text" = "AI的回答并不一定完全准确，且本应用不承担任何责任。";
 
+
+//ads
+"AdNotReadyTitle" = "广告尚未准备好";
+"AdNotReadyMessage" = "请稍后再尝试。";

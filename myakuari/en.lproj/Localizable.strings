@@ -15,9 +15,9 @@
 "supplementary_input" = "Add any notes (optional)";
 "select_photo_button" = "Select Photo";
 "add_more_photo_button" = "Add More Photos";
-"start_analysis_button" = "Start Judging";
+"start_analysis_button" = "Tap to Watch Ad & Start Analysis";
 "loading_analysis" = "Analyzing...";
-"error_prefix" = "Error: ";
+"error_prefix" = "Analysis Failed: ";
 "error_no_input" = "Please upload a photo or enter some notes.";
 "error_invalid_url" = "Invalid URL.";
 "error_create_request" = "Failed to create request.";
@@ -46,3 +46,7 @@
 
 
 "disclaimer_text" = "AI responses may not always be accurate and are for reference only.";
+
+
+"AdNotReadyTitle" = "Ad Not Ready";
+"AdNotReadyMessage" = "Please try again later.";

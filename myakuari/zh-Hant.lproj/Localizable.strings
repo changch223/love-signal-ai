@@ -15,9 +15,9 @@
 "supplementary_input" = "補充備註（可選）";
 "select_photo_button" = "選擇圖片";
 "add_more_photo_button" = "繼續新增圖片";
-"start_analysis_button" = "開始判定";
+"start_analysis_button" = "支持一下後開始判定";
 "loading_analysis" = "分析中...";
-"error_prefix" = "錯誤：";
+"error_prefix" = "分析失敗：";
 "error_no_input" = "請上傳照片或輸入備註內容。";
 "error_invalid_url" = "無效的URL。";
 "error_create_request" = "建立請求失敗。";
@@ -52,3 +52,7 @@
 
 
 "disclaimer_text" = "AI的回答未必絕對正確，本應用亦不負任何責任。";
+
+//ads
+"AdNotReadyTitle" = "廣告尚未準備好";
+"AdNotReadyMessage" = "請稍後再嘗試。";

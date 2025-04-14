@@ -19,6 +19,8 @@ struct APIErrorResponse: Codable {
     let error: ErrorDetail?
 }
 
+
+
 struct AnalysisView: View {
     @State private var navigateToResult = false
     @State private var showSuccessAnimation = false
@@ -38,6 +40,29 @@ struct AnalysisView: View {
 
     // 讓使用者選圖時，控制「要加到第幾張」的索引
     @State private var imageIndexToAdd: Int?
+
+    private func handleAdAndRunAnalysis() {
+        if RewardedAdManager.shared.isAdReady {
+            if let rootVC = UIApplication.rootViewController {
+                RewardedAdManager.shared.showAd(from: rootVC) {
+                    // 👇 廣告看完後，才正式跑分析
+                    runAnalysis()
+                }
+            } else {
+                print("❗找不到 rootViewController")
+            }
+        } else {
+            if let rootVC = UIApplication.rootViewController {
+                let alert = UIAlertController(
+                    title: NSLocalizedString("AdNotReadyTitle", comment: ""),
+                    message: NSLocalizedString("AdNotReadyMessage", comment: ""),
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
+                rootVC.present(alert, animated: true)
+            }
+        }
+    }
 
     // 參考：用於 JSON Schema（你原本的程式就有定義，可留著/也可不留）
     private var analysisResultSchema: Schema {
@@ -127,7 +152,9 @@ struct AnalysisView: View {
                                 .padding()
                         } else {
                             Button {
-                                runAnalysis()
+                                
+                                handleAdAndRunAnalysis()
+                                
                             } label: {
                                 Label(
                                     title: { Text("start_analysis_button") },
@@ -197,6 +224,9 @@ struct AnalysisView: View {
             }
             .onAppear {
                 animateIn = true
+                if !RewardedAdManager.shared.isAdReady {
+                    RewardedAdManager.shared.loadRewardedAd()
+                }
             }
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker { uiImage in
@@ -468,5 +498,18 @@ struct AnalysisView: View {
                 }
             }
         }.resume()
+    }
+}
+
+import UIKit
+
+extension UIApplication {
+    static var rootViewController: UIViewController? {
+        return shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?
+            .windows
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController
     }
 }
