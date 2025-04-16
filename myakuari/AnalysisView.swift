@@ -45,21 +45,28 @@ struct AnalysisView: View {
         if RewardedAdManager.shared.isAdReady {
             if let rootVC = UIApplication.rootViewController {
                 RewardedAdManager.shared.showAd(from: rootVC) {
-                    // 👇 廣告看完後，才正式跑分析
+                    // 廣告看完後再跑分析
                     runAnalysis()
                 }
             } else {
                 print("❗找不到 rootViewController")
             }
         } else {
-            if let rootVC = UIApplication.rootViewController {
-                let alert = UIAlertController(
-                    title: NSLocalizedString("AdNotReadyTitle", comment: ""),
-                    message: NSLocalizedString("AdNotReadyMessage", comment: ""),
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-                rootVC.present(alert, animated: true)
+            // 檢查上次錯誤訊息是否包含 "No ad to show"
+            if let errorMessage = RewardedAdManager.shared.lastAdLoadError,
+               errorMessage.contains("No ad to show") {
+                print("⚠️ Ad not available ('No ad to show'), proceeding with analysis.")
+                runAnalysis()
+            } else {
+                if let rootVC = UIApplication.rootViewController {
+                    let alert = UIAlertController(
+                        title: NSLocalizedString("AdNotReadyTitle", comment: ""),
+                        message: NSLocalizedString("AdNotReadyMessage", comment: ""),
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
+                    rootVC.present(alert, animated: true)
+                }
             }
         }
     }

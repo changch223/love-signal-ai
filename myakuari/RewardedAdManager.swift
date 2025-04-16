@@ -14,6 +14,9 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     private var rewardedAd: RewardedAd?
     private var adUnitID = "ca-app-pub-9275380963550837/1338217532"
     private var rewardAction: (() -> Void)?
+    
+    // 新增紀錄錯誤訊息的屬性
+    var lastAdLoadError: String?
 
     override private init() {
         super.init()
@@ -31,10 +34,13 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
         //}
 
         RewardedAd.load(with: adUnitID, request: Request()) { ad, error in
+            
             if let error = error {
+                self.lastAdLoadError = error.localizedDescription
                 print("❌ Reward ad failed to load: \(error.localizedDescription)")
                 return
             }
+            self.lastAdLoadError = nil
             self.rewardedAd = ad
             self.rewardedAd?.fullScreenContentDelegate = self
             print("✅ Reward ad loaded")
