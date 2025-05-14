@@ -56,3 +56,7 @@
 //ads
 "AdNotReadyTitle" = "廣告尚未準備好";
 "AdNotReadyMessage" = "請稍後再嘗試。";
+
+"remaining_free_chances"    = "剩餘免費分析次數：%d";
+"extra_chances"             = "額外分析次數：%d";
+"watch_ad_reward_button"    = "🎁 觀看廣告獲取額外分析次數";

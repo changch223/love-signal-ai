@@ -50,3 +50,7 @@
 
 "AdNotReadyTitle" = "Ad Not Ready";
 "AdNotReadyMessage" = "Please try again later.";
+
+"remaining_free_chances"    = "Remaining free analyses: %d";
+"extra_chances"             = "Extra analyses: %d";
+"watch_ad_reward_button"    = "🎁 Watch ad to gain extra chance";

@@ -54,3 +54,7 @@
 
 "AdNotReadyTitle" = "広告の準備ができていません";
 "AdNotReadyMessage" = "しばらくしてからもう一度お試しください。";
+
+"remaining_free_chances"    = "残り無料分析回数：%d";
+"extra_chances"             = "追加分析回数：%d";
+"watch_ad_reward_button"    = "🎁 広告を見て追加分析回数を獲得";

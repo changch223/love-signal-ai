@@ -27,6 +27,10 @@ struct AnalysisView: View {
     @State private var animateIn = false  // 控制整體進場動畫
     @State private var isAnalysisButtonPressed = false // 控制分析開始按鈕點擊動畫
 
+    // 免費與額外分析次數
+    @AppStorage("remainingFreeChances") private var remainingFreeChances = 1
+    @AppStorage("extraChances")         private var extraChances         = 0
+    
     // 文字（對話或輔助說明）
     @State private var conversationText = ""
     // 最多可上傳 3 張圖
@@ -42,34 +46,42 @@ struct AnalysisView: View {
     @State private var imageIndexToAdd: Int?
 
     private func handleAdAndRunAnalysis() {
-        if RewardedAdManager.shared.isAdReady {
-            if let rootVC = UIApplication.rootViewController {
-                RewardedAdManager.shared.showAd(from: rootVC) {
-                    // 廣告看完後再跑分析
-                    runAnalysis()
-                }
+        // ① 残り無料 or 追加チャンスがある場合 → そのまま runAnalysis()
+        if remainingFreeChances > 0 || extraChances > 0 {
+            if remainingFreeChances > 0 {
+                remainingFreeChances -= 1
             } else {
-                print("❗找不到 rootViewController")
+                extraChances -= 1
             }
-        } else {
-            // 檢查上次錯誤訊息是否包含 "No ad to show"
-            if let errorMessage = RewardedAdManager.shared.lastAdLoadError,
-               errorMessage.contains("No ad to show") {
-                print("⚠️ Ad not available ('No ad to show'), proceeding with analysis.")
+            runAnalysis()
+            return
+        }
+
+        // ② チャンスがない場合 → リワード広告を表示して runAnalysis()
+        if RewardedAdManager.shared.isAdReady,
+           let rootVC = UIApplication.rootViewController {
+            RewardedAdManager.shared.showAd(from: rootVC) {
+                // 広告視聴後に分析を実行
                 runAnalysis()
-            } else {
-                if let rootVC = UIApplication.rootViewController {
-                    let alert = UIAlertController(
-                        title: NSLocalizedString("AdNotReadyTitle", comment: ""),
-                        message: NSLocalizedString("AdNotReadyMessage", comment: ""),
-                        preferredStyle: .alert
-                    )
-                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-                    rootVC.present(alert, animated: true)
-                }
             }
         }
+        // ③ 広告ロードはされたが表示できる広告がないときも分析
+        else if let lastError = RewardedAdManager.shared.lastAdLoadError,
+                lastError.contains("No ad to show") {
+            runAnalysis()
+        }
+        // ④ それ以外（広告未ロード／準備中）はアラート表示
+        else if let rootVC = UIApplication.rootViewController {
+            let alert = UIAlertController(
+                title: NSLocalizedString("AdNotReadyTitle", comment: ""),
+                message: NSLocalizedString("AdNotReadyMessage", comment: ""),
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
+            rootVC.present(alert, animated: true)
+        }
     }
+
 
     // 參考：用於 JSON Schema（你原本的程式就有定義，可留著/也可不留）
     private var analysisResultSchema: Schema {
@@ -96,15 +108,48 @@ struct AnalysisView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-
+            
             Color.white.opacity(0.2)
                 .ignoresSafeArea()
                 .blur(radius: 30)
-
+            
             // 使用進場動畫效果包裹 NavigationView 整體內容
             NavigationView {
                 ScrollView {
-                    VStack(spacing: 30) {
+                    VStack(spacing: 20) {
+                        // 次數顯示與廣告按鈕
+                        VStack(spacing: 8) {
+                            // “剩餘免費分析次數：%d”
+                               Text(String(format: NSLocalizedString("remaining_free_chances", comment: ""),
+                                           remainingFreeChances))
+                               // “額外分析次數：%d”
+                               Text(String(format: NSLocalizedString("extra_chances", comment: ""),
+                                           extraChances))
+                            Button(LocalizedStringKey("watch_ad_reward_button")) {
+                                // ここで直接広告を表示して、完了時に extraChances を +1
+                                if RewardedAdManager.shared.isAdReady,
+                                   let rootVC = UIApplication.rootViewController {
+                                    RewardedAdManager.shared.showAd(from: rootVC) {
+                                        extraChances += 1
+                                    }
+                                } else if let lastError = RewardedAdManager.shared.lastAdLoadError,
+                                          lastError.contains("No ad to show") {
+                                    // 広告がない場合でもユーザーへ回数付与したければここで
+                                    extraChances += 1
+                                } else if let rootVC = UIApplication.rootViewController {
+                                    let alert = UIAlertController(
+                                        title: NSLocalizedString("AdNotReadyTitle", comment: ""),
+                                        message: NSLocalizedString("AdNotReadyMessage", comment: ""),
+                                        preferredStyle: .alert
+                                    )
+                                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
+                                    rootVC.present(alert, animated: true)
+                                }
+                            }
+                            .font(.subheadline)
+                        }
+                        .padding(.vertical)
+                        
                         // ❤️ 恋のAI分析標題與說明
                         VStack(spacing: 8) {
                             Text("title_ai_analysis")
@@ -214,7 +259,7 @@ struct AnalysisView: View {
                             .font(.footnote)
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
-                            
+                        
                         
                         // 廣告放底部
                         BannerAdView(adUnitID: "ca-app-pub-9275380963550837/6056788210")
@@ -233,6 +278,16 @@ struct AnalysisView: View {
                 animateIn = true
                 if !RewardedAdManager.shared.isAdReady {
                     RewardedAdManager.shared.loadRewardedAd()
+                }
+                // 每日重置免費次數
+                let today = Calendar.current.startOfDay(for: Date())
+                if let last = UserDefaults.standard.object(forKey: "lastFreeResetDate") as? Date {
+                    if Calendar.current.compare(today, to: last, toGranularity: .day) == .orderedDescending {
+                        remainingFreeChances = 1
+                        UserDefaults.standard.set(today, forKey: "lastFreeResetDate")
+                    }
+                } else {
+                    UserDefaults.standard.set(today, forKey: "lastFreeResetDate")
                 }
             }
             .sheet(isPresented: $showImagePicker) {
