@@ -46,7 +46,7 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 
 ## 📸 Screenshots
 
-Coming soon — or visit the [App Store](https://apps.apple.com/us/app/love-signal-ai-detection-app/id6744615409) for previews!
+![Home Screenshot](assets/Myakuari app intro.png.png)
 
 ---
 
