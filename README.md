@@ -49,7 +49,7 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 <div align="center">
   <img src="assets/Myakuari%20app%20intro.png" width="600"/>
   <br/>
-  <img src="assets/Myakuari_demo.gif" width="600"/>
+  <img src="https://raw.githubusercontent.com/changch223/love-signal-ai/main/assets/Myakuari_demo.gif" width="600"/>
 </div>
 
 ---
