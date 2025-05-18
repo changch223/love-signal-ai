@@ -47,6 +47,7 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 ## 📸 Screenshots
 
 ![App Intro Screenshot](assets/Myakuari%20app%20intro.png)
+![Live Demo GIF](assets/Myakuari.gif)
 
 ---
 
