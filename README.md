@@ -29,9 +29,9 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 
 ## 🔧 Tech Stack
 
-- 🤖 NLP: Fine-tuned BERT (Japanese sentiment model via Hugging Face)
+- 🤖 AI Model: Google Gemini API (via custom proxy)
+- ☁️ Backend: [FastAPI Gemini Proxy](https://github.com/changch223/gemini-api-key-proxy) deployed on Google Cloud Run
 - 🧩 iOS Frontend: SwiftUI  
-- 🧠 Core Logic: Real-time ranking, reasoning, and visualization  
 - 🎨 UX: Animated feedback, dynamic love-index report
 
 ---
