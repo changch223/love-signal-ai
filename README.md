@@ -4,7 +4,7 @@
 _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_  
 (Available in English, Chinese, and Japanese)
 
-📱 Now available on iPhone  
+Now available on iPhone  
 👉 [Download on the App Store](https://apps.apple.com/us/app/love-signal-ai-detection-app/id6744615409)
 
 > Powered by cutting-edge AI, Love Signal AI helps users detect potential romantic interest from text and images through real-time analysis and intuitive feedback.
@@ -13,13 +13,13 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 
 ## ✨ Features
 
-- 🔍 **Real-Time Sentiment Analysis**  
+- **Real-Time Sentiment Analysis**  
   Analyze chat messages and uploaded photos to uncover hidden romantic signals.
 
-- ⚡ **Fast, Simple Insights**  
+- **Fast, Simple Insights**  
   Upload 1–3 photos and add chat snippets or personal notes — receive instant feedback.
 
-- 💌 **Interactive Love Index**  
+- **Interactive Love Index**  
   Provides like/dislike strength scores, relationship advice, and fun heart animations.
 
 - 🌐 **Multilingual Support**  
@@ -29,10 +29,10 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 
 ## 🔧 Tech Stack
 
-- 🤖 AI Model: Google Gemini API (via custom proxy)
-- ☁️ Backend: [FastAPI Gemini Proxy](https://github.com/changch223/gemini-api-key-proxy) deployed on Google Cloud Run
-- 🧩 iOS Frontend: SwiftUI  
-- 🎨 UX: Animated feedback, dynamic love-index report
+- AI Model: Google Gemini API (via custom proxy)
+- Backend: [FastAPI Gemini Proxy](https://github.com/changch223/gemini-api-key-proxy) deployed on Google Cloud Run
+- iOS Frontend: SwiftUI  
+- UX: Animated feedback, dynamic love-index report
 
 ---
 
@@ -56,8 +56,8 @@ _“Uncover Love Potential in Just One Second — Don’t Miss the Signal!”_
 
 ## 📂 Project Links
 
-- 🛠 [Source Code on GitHub](https://github.com/changch223/love-signal-ai)  
-- 📱 [Download on the App Store](https://apps.apple.com/us/app/love-signal-ai-detection-app/id6744615409)
+- [Source Code on GitHub](https://github.com/changch223/love-signal-ai)  
+- [Download on the App Store](https://apps.apple.com/us/app/love-signal-ai-detection-app/id6744615409)
 
 ---
 
