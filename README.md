@@ -22,7 +22,7 @@ Now available on iPhone
 - **Interactive Love Index**  
   Provides like/dislike strength scores, relationship advice, and fun heart animations.
 
-- 🌐 **Multilingual Support**  
+- **Multilingual Support**  
   Supports English, Traditional Chinese, and Japanese.
 
 ---
