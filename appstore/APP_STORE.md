@@ -31,7 +31,7 @@ App Store Connect に貼り付ける文面と、提出までの手順をまと�
 - [ ] Xcode で Archive → Distribute App → App Store Connect
 - [ ] App Store Connect で 2.0 を作成し、各言語の文面とスクリーンショットを差し替える
 - [ ] 「App のプライバシー」の回答を見直す（8章）
-- [ ] プライバシーポリシーの URL の内容を `PRIVACY_POLICY.md` に合わせて更新する
+- [ ] サポート・マーケティング・プライバシーの各 URL を GitHub Pages のものに差し替える（2章）
 - [ ] App Review へのメモを貼る（7章）
 - [ ] 審査に提出
 - [ ] 公開後、星1レビューに返信する（9章）
@@ -90,6 +90,17 @@ xcrun simctl launch booted CHIA.myakuari -shot result -AppleLanguages "(ja)"
 ```
 
 `-shot` には `home` / `input` / `loading` / `result` を指定します。入力画面の写真は環境変数 `SIMCTL_CHILD_SHOT_PHOTO` に画像のパスを渡します。
+
+### App Store Connect に登録する URL
+
+GitHub Pages で公開しています（リポジトリの `docs/` フォルダ）。4言語を1ページにまとめてあるので、全言語で同じ URL を使えます。
+
+| 項目 | URL |
+|---|---|
+| サポート URL | https://changch223.github.io/myakuari/support.html |
+| マーケティング URL | https://changch223.github.io/myakuari/ |
+| プライバシーポリシー URL | https://changch223.github.io/myakuari/privacy.html |
+| ユーザプライバシー選択 URL | https://changch223.github.io/myakuari/privacy-choices.html |
 
 ---
 

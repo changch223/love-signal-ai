@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>サポート / Support - 脈ありAIジャッジ</title>
+<link rel="icon" href="img/icon.png">
+<style>
+:root{--ink:#5A3038;--sub:#8C6A72;--pink:#E84C7A;--line:#F1D5DB;--bg1:#FFE3E6;--bg2:#FFF6EE;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(var(--bg1),var(--bg2)) fixed;color:var(--ink);font:16px/1.85 -apple-system,BlinkMacSystemFont,"Hiragino Sans","PingFang SC","PingFang TC","Noto Sans JP",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:24px 20px 64px}
+header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--ink);text-decoration:none}
+.brand img{width:40px;height:40px;border-radius:10px}
+nav{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+a{color:var(--pink)}
+.langs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px;padding:0;list-style:none;font-size:14px}
+.langs a{display:block;padding:4px 14px;border:1px solid var(--line);border-radius:99px;background:var(--card);text-decoration:none;font-weight:700}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:24px}
+h1{font-size:26px;line-height:1.4;margin:0 0 6px}
+h2{font-size:17px;margin:26px 0 6px}
+p,ul{margin:0 0 10px}
+ul{padding-left:1.3em}
+.meta{color:var(--sub);font-size:14px}
+.cta{display:inline-block;margin:10px 0 4px;padding:10px 26px;border-radius:99px;background:var(--pink);color:#fff;font-weight:800;text-decoration:none}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 24px}
+.shots img{width:100%;height:auto;border-radius:14px;display:block}
+footer{color:var(--sub);font-size:13px;text-align:center;margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="./"><img src="img/icon.png" alt="">脈ありAIジャッジ</a><nav><a href="./">ホーム / Home</a><a href="./support.html">サポート / Support</a><a href="./privacy.html">プライバシーポリシー / Privacy</a><a href="./privacy-choices.html">プライバシーの選択 / Privacy Choices</a></nav></header>
+
+<ul class="langs"><li><a href="#ja">日本語</a></li><li><a href="#en">English</a></li><li><a href="#zh-hans">简体中文</a></li><li><a href="#zh-hant">繁體中文</a></li></ul>
+<section id="ja" lang="ja"><h1>サポート</h1><p class="meta">脈ありAIジャッジ</p>
+<h2>判定できない・エラーが出る</h2><p>App Store でアプリを最新版に更新し、通信環境の良いところでもう一度お試しください。バージョン2.0以降では、判定に失敗しても回数は減りません。</p>
+<h2>回数について</h2><p>毎日1回、無料で判定できます（日付が変わると戻ります）。回数がないときは、広告を最後まで見ると1回分が追加されます。追加された回数は、判定に失敗しても残ります。</p>
+<h2>広告を見たのに判定できなかった</h2><p>バージョン2.0以降では、広告で得た回数は「追加」として残っています。入力画面でもう一度判定ボタンを押してください。広告は出ません。</p>
+<h2>写真の扱い</h2><p>選んだ写真と補足は、判定のためにAI（Google の Gemini）へ送信されます。アプリにも運営者のサーバーにも保存しません。詳しくは<a href="privacy.html#ja">プライバシーポリシー</a>をご覧ください。</p>
+<h2>お問い合わせ</h2><p>不具合の報告やご質問は、<a href="https://github.com/changch223/myakuari/issues">GitHub の Issues</a> からお送りください。端末の機種、iOS のバージョン、アプリのバージョン、表示されたメッセージを書いていただけると助かります。</p></section><section id="en" lang="en"><h1>Support</h1><p class="meta">Love Signal AI</p>
+<h2>The analysis fails or shows an error</h2><p>Update the app to the latest version on the App Store and try again with a good connection. From version 2.0, a failed analysis is not counted.</p>
+<h2>About analyses</h2><p>You get one free analysis every day (it refreshes when the date changes). When you have none left, watch an ad to the end to get one more. An extra analysis is kept if the analysis fails.</p>
+<h2>I watched an ad but got no result</h2><p>From version 2.0, the analysis you earned is kept as "Extra". Tap the analyze button again on the input screen. No ad will play.</p>
+<h2>Your photos</h2><p>The photos and notes you choose are sent to AI (Google's Gemini) to create the analysis. They are not stored in the app or on our server. See the <a href="privacy.html#en">Privacy Policy</a>.</p>
+<h2>Contact</h2><p>To report a problem or ask a question, please open an issue on <a href="https://github.com/changch223/myakuari/issues">GitHub Issues</a>. Including your device model, iOS version, app version and the message you saw helps a lot.</p></section><section id="zh-hans" lang="zh-Hans"><h1>支持</h1><p class="meta">恋爱信号AI判定</p>
+<h2>无法判定或出现错误</h2><p>请在 App Store 将应用更新到最新版本，并在网络良好的环境下重试。2.0及以上版本中，判定失败不会扣除次数。</p>
+<h2>关于次数</h2><p>每天可免费判定1次（日期变更后恢复）。没有次数时，完整观看广告即可增加1次。增加的次数在判定失败时会保留。</p>
+<h2>看了广告却没有判定结果</h2><p>2.0及以上版本中，通过广告获得的次数会保留为“额外”。请在输入页面再次点击判定按钮，不会再播放广告。</p>
+<h2>关于照片</h2><p>你选择的照片和补充说明会发送给AI（Google 的 Gemini）用于判定，不会保存在应用或运营者的服务器中。详情请查看<a href="privacy.html#zh-hans">隐私政策</a>。</p>
+<h2>联系我们</h2><p>如需反馈问题或咨询，请通过 <a href="https://github.com/changch223/myakuari/issues">GitHub Issues</a> 联系。请附上设备型号、iOS 版本、应用版本和显示的提示信息。</p></section><section id="zh-hant" lang="zh-Hant"><h1>支援</h1><p class="meta">戀愛訊號AI判定</p>
+<h2>無法判定或出現錯誤</h2><p>請在 App Store 將 App 更新到最新版本，並在網路良好的環境下重試。2.0以上版本中，判定失敗不會扣除次數。</p>
+<h2>關於次數</h2><p>每天可免費判定1次（日期變更後恢復）。沒有次數時，完整觀看廣告即可增加1次。增加的次數在判定失敗時會保留。</p>
+<h2>看了廣告卻沒有判定結果</h2><p>2.0以上版本中，透過廣告獲得的次數會保留為「額外」。請在輸入頁面再次點擊判定按鈕，不會再播放廣告。</p>
+<h2>關於照片</h2><p>你選擇的照片和補充說明會傳送給AI（Google 的 Gemini）用於判定，不會保存在 App 或營運者的伺服器中。詳情請參閱<a href="privacy.html#zh-hant">隱私權政策</a>。</p>
+<h2>聯絡我們</h2><p>如需回報問題或詢問，請透過 <a href="https://github.com/changch223/myakuari/issues">GitHub Issues</a> 聯絡。請附上裝置型號、iOS 版本、App 版本和顯示的訊息。</p></section>
+<footer>© 2026 Chia-Wei Chang</footer>
+</div>
+</body>
+</html>

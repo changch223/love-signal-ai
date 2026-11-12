@@ -1,15 +1,15 @@
 # プライバシーポリシー（文案）
 
-App Store Connect に登録しているプライバシーポリシーの URL に掲載する文案です。
-`【　】` の部分は公開前に埋めてください。法的な確認が必要な場合は専門家に相談してください。
+公開しているプライバシーポリシー（https://changch223.github.io/myakuari/privacy.html）の元になった文案です。
+公開ページの本体は `docs/privacy.html` です。法的な確認が必要な場合は専門家に相談してください。
 
 ---
 
 ## 脈ありAIジャッジ プライバシーポリシー
 
-最終更新日: 【2026年11月　日】
+最終更新日: 2026年11月12日
 
-「脈ありAIジャッジ」（以下「本アプリ」）は、【運営者名】（以下「運営者」）が提供します。本アプリでの情報の取り扱いは次のとおりです。
+「脈ありAIジャッジ」（以下「本アプリ」）は、Chia-Wei Chang（以下「運営者」）が提供します。本アプリでの情報の取り扱いは次のとおりです。
 
 ### 1. 判定のために送信する情報
 
@@ -56,16 +56,16 @@ App Store Connect に登録しているプライバシーポリシーの URL に
 
 ### 8. お問い合わせ
 
-【運営者名】
-【連絡先メールアドレス】
+Chia-Wei Chang
+https://github.com/changch223/myakuari/issues
 
 ---
 
 ## Privacy Policy (English)
 
-Last updated: 【November __, 2026】
+Last updated: November 12, 2026
 
-"Love Signal AI" (the "App") is provided by 【operator name】 ("we").
+"Love Signal AI" (the "App") is provided by Chia-Wei Chang ("we").
 
 **Information sent for an analysis.** When you run an analysis, the photos you choose (up to 3) and the optional note you type are sent through our relay server to Google LLC's generative AI service (Gemini API) and are used only to create your result. The App asks for your consent before your first analysis. We do not store your photos, notes, or results in the App or on our relay server. Google's handling of the data is governed by Google's terms and privacy policy.
 
@@ -79,4 +79,4 @@ Last updated: 【November __, 2026】
 
 **Children.** The App is not directed to children under 13.
 
-**Contact.** 【operator name】 / 【contact email】
+**Contact.** Chia-Wei Chang / https://github.com/changch223/myakuari/issues
