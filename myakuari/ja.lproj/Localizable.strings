@@ -58,3 +58,6 @@
 "remaining_free_chances"    = "残り無料分析回数：%d";
 "extra_chances"             = "追加分析回数：%d";
 "watch_ad_reward_button"    = "🎁 広告を見て追加分析回数を獲得";
+
+"error_service_unavailable" = "ただいまAI判定サーバーに接続できません。回数は減っていません。少し時間をおいてもう一度お試しください。";
+"error_cannot_judge" = "この内容は判定できませんでした。回数は減っていません。別の写真や補足でお試しください。";

@@ -61,3 +61,6 @@
 "remaining_free_chances"    = "剩余免费分析次数：%d";
 "extra_chances"             = "额外分析次数：%d";
 "watch_ad_reward_button"    = "🎁 观看广告获取额外分析次数";
+
+"error_service_unavailable" = "暂时无法连接AI判定服务器。次数没有减少，请稍后再试。";
+"error_cannot_judge" = "无法判定此内容。次数没有减少，请换一张照片或备注再试。";

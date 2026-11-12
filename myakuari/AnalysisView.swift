@@ -46,13 +46,15 @@ struct AnalysisView: View {
     @State private var imageIndexToAdd: Int?
 
     private func handleAdAndRunAnalysis() {
+        // ⓪ 入力チェックは回数消費・広告表示より先に行う
+        if conversationText.isEmpty && selectedImages.isEmpty {
+            errorMessage = NSLocalizedString("error_no_input", comment: "")
+            return
+        }
+
         // ① 残り無料 or 追加チャンスがある場合 → そのまま runAnalysis()
+        //    回数は分析が成功した時点で消費する（失敗時は減らさない）
         if remainingFreeChances > 0 || extraChances > 0 {
-            if remainingFreeChances > 0 {
-                remainingFreeChances -= 1
-            } else {
-                extraChances -= 1
-            }
             runAnalysis()
             return
         }
@@ -60,15 +62,22 @@ struct AnalysisView: View {
         // ② チャンスがない場合 → リワード広告を表示して runAnalysis()
         if RewardedAdManager.shared.isAdReady,
            let rootVC = UIApplication.rootViewController {
-            RewardedAdManager.shared.showAd(from: rootVC) {
-                // 広告視聴後に分析を実行
-                runAnalysis()
-            }
+            RewardedAdManager.shared.showAd(
+                from: rootVC,
+                onReward: {
+                    // 報酬は必ず回数として付与する。分析が失敗しても回数が残り、広告なしで再試行できる
+                    extraChances += 1
+                },
+                onDismiss: { earned in
+                    // 広告が閉じてから分析を実行
+                    if earned { runAnalysis() }
+                }
+            )
         }
         // ③ 広告ロードはされたが表示できる広告がないときも分析
         else if let lastError = RewardedAdManager.shared.lastAdLoadError,
                 lastError.contains("No ad to show") {
-            runAnalysis()
+            runAnalysis(consumesChance: false)
         }
         // ④ それ以外（広告未ロード／準備中）はアラート表示
         else if let rootVC = UIApplication.rootViewController {
@@ -129,9 +138,9 @@ struct AnalysisView: View {
                                 // ここで直接広告を表示して、完了時に extraChances を +1
                                 if RewardedAdManager.shared.isAdReady,
                                    let rootVC = UIApplication.rootViewController {
-                                    RewardedAdManager.shared.showAd(from: rootVC) {
+                                    RewardedAdManager.shared.showAd(from: rootVC, onReward: {
                                         extraChances += 1
-                                    }
+                                    })
                                 } else if let lastError = RewardedAdManager.shared.lastAdLoadError,
                                           lastError.contains("No ad to show") {
                                     // 広告がない場合でもユーザーへ回数付与したければここで
@@ -429,7 +438,16 @@ struct AnalysisView: View {
     }
     
     // MARK: - 分析執行
-    func runAnalysis() {
+    // 成功時に回数を1つ消費（無料分 → 追加分の順）
+    private func consumeChance() {
+        if remainingFreeChances > 0 {
+            remainingFreeChances -= 1
+        } else if extraChances > 0 {
+            extraChances -= 1
+        }
+    }
+
+    func runAnalysis(consumesChance: Bool = true) {
         // 使用 localized 讀取錯誤文字
         if conversationText.isEmpty && selectedImages.isEmpty {
             errorMessage = NSLocalizedString("error_no_input", comment: "")
@@ -473,8 +491,8 @@ struct AnalysisView: View {
             contents.append(imagePart)
         }
         
+        // モデルはプロキシ側で決める（アプリに固定すると提供終了時に全ユーザーが失敗する）
         let payload: [String: Any] = [
-            "model_name": "gemini-2.0-flash",
             "system_instruction": systemInstructionObject,
             "contents": contents,
             "generationConfig": [
@@ -526,10 +544,18 @@ struct AnalysisView: View {
                 return
             }
             
+            // HTTP エラー（プロキシ／Gemini 側の障害）は内部エラー文言を出さず、再試行を案内する
+            if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+                print("❌ API status \(http.statusCode)")
+                DispatchQueue.main.async {
+                    self.errorMessage = NSLocalizedString("error_service_unavailable", comment: "")
+                }
+                return
+            }
+
             do {
                 if let rawJson = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    print("=== RAW JSON ===\n\(rawJson)\n=========")
-                    
+
                     if let candidates = rawJson["candidates"] as? [[String: Any]],
                        let firstCandidate = candidates.first,
                        let content = firstCandidate["content"] as? [String: Any],
@@ -540,6 +566,7 @@ struct AnalysisView: View {
                         let decodedResult = try JSONDecoder().decode(AnalysisResult.self, from: jsonData)
                         
                         DispatchQueue.main.async {
+                            if consumesChance { self.consumeChance() }
                             self.analysisResult = decodedResult
                             self.showSuccessAnimation = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -549,18 +576,20 @@ struct AnalysisView: View {
                         }
                         
                     } else {
+                        // 200 だが候補なし = 安全フィルタ等で回答が生成されなかった
                         DispatchQueue.main.async {
-                            self.errorMessage = NSLocalizedString("error_api_format", comment: "")
+                            self.errorMessage = NSLocalizedString("error_cannot_judge", comment: "")
                         }
                     }
                 } else {
                     DispatchQueue.main.async {
-                        self.errorMessage = NSLocalizedString("error_json_parse", comment: "")
+                        self.errorMessage = NSLocalizedString("error_service_unavailable", comment: "")
                     }
                 }
             } catch {
+                print("❌ Decode error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
-                    self.errorMessage = String(format: NSLocalizedString("error_decode", comment: ""), error.localizedDescription)
+                    self.errorMessage = NSLocalizedString("error_service_unavailable", comment: "")
                 }
             }
         }.resume()

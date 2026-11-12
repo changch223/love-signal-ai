@@ -60,3 +60,6 @@
 "remaining_free_chances"    = "剩餘免費分析次數：%d";
 "extra_chances"             = "額外分析次數：%d";
 "watch_ad_reward_button"    = "🎁 觀看廣告獲取額外分析次數";
+
+"error_service_unavailable" = "暫時無法連線到AI判定伺服器。次數沒有減少，請稍後再試。";
+"error_cannot_judge" = "無法判定此內容。次數沒有減少，請換一張照片或備註再試。";
