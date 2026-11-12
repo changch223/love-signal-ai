@@ -1,6 +1,6 @@
 # プライバシーポリシー（文案）
 
-公開しているプライバシーポリシー（https://changch223.github.io/myakuari/privacy.html）の元になった文案です。
+公開しているプライバシーポリシー（https://changch223.github.io/love-signal-ai/privacy.html）の元になった文案です。
 公開ページの本体は `docs/privacy.html` です。法的な確認が必要な場合は専門家に相談してください。
 
 ---
@@ -57,7 +57,7 @@
 ### 8. お問い合わせ
 
 Chia-Wei Chang
-https://github.com/changch223/myakuari/issues
+https://github.com/changch223/love-signal-ai/issues
 
 ---
 
@@ -79,4 +79,4 @@ Last updated: November 12, 2026
 
 **Children.** The App is not directed to children under 13.
 
-**Contact.** Chia-Wei Chang / https://github.com/changch223/myakuari/issues
+**Contact.** Chia-Wei Chang / https://github.com/changch223/love-signal-ai/issues

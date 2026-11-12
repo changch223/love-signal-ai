@@ -97,10 +97,10 @@ GitHub Pages で公開しています（リポジトリの `docs/` フォルダ�
 
 | 項目 | URL |
 |---|---|
-| サポート URL | https://changch223.github.io/myakuari/support.html |
-| マーケティング URL | https://changch223.github.io/myakuari/ |
-| プライバシーポリシー URL | https://changch223.github.io/myakuari/privacy.html |
-| ユーザプライバシー選択 URL | https://changch223.github.io/myakuari/privacy-choices.html |
+| サポート URL | https://changch223.github.io/love-signal-ai/support.html |
+| マーケティング URL | https://changch223.github.io/love-signal-ai/ |
+| プライバシーポリシー URL | https://changch223.github.io/love-signal-ai/privacy.html |
+| ユーザプライバシー選択 URL | https://changch223.github.io/love-signal-ai/privacy-choices.html |
 
 ---
 
