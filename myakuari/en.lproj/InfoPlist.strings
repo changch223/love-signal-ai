@@ -6,3 +6,5 @@
 //
 
 CFBundleDisplayName = "Love Signal AI";
+
+NSPhotoLibraryAddUsageDescription = "Used to save your result image to Photos.";

@@ -6,3 +6,5 @@
 //
 
 CFBundleDisplayName = "脈ありジャッジ";
+
+NSPhotoLibraryAddUsageDescription = "判定結果の画像を写真に保存するために使用します。";

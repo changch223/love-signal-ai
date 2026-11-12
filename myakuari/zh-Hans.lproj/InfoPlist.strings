@@ -6,3 +6,5 @@
 //
 
 CFBundleDisplayName = "恋爱判定AI";
+
+NSPhotoLibraryAddUsageDescription = "用于将判定结果图片保存到相册。";

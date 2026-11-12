@@ -1,5 +1,4 @@
 import SwiftUI
-import GoogleGenerativeAI
 
 // Gemini 回傳的分析結果
 struct AnalysisResult: Codable {
@@ -9,60 +8,387 @@ struct AnalysisResult: Codable {
     let encouragement_message: String
 }
 
-// API 錯誤回傳結構
-struct APIErrorResponse: Codable {
-    struct ErrorDetail: Codable {
-        let code: Int?
-        let message: String?
-        let status: String?
-    }
-    let error: ErrorDetail?
-}
-
-
-
 struct AnalysisView: View {
-    @State private var navigateToResult = false
-    @State private var showSuccessAnimation = false
-    @State private var animateIn = false  // 控制整體進場動畫
-    @State private var isAnalysisButtonPressed = false // 控制分析開始按鈕點擊動畫
-
     // 免費與額外分析次數
     @AppStorage("remainingFreeChances") private var remainingFreeChances = 1
     @AppStorage("extraChances")         private var extraChances         = 0
-    
+    // 初回のみ、AIへの送信について同意を取る
+    @AppStorage("aiConsentGiven")       private var aiConsentGiven       = false
+    @AppStorage("hasCompletedAnalysis") private var hasCompletedAnalysis = false
+
+    @ObservedObject private var adManager = RewardedAdManager.shared
+
     // 文字（對話或輔助說明）
-    @State private var conversationText = ""
+    @State private var conversationText: String
     // 最多可上傳 3 張圖
-    @State private var selectedImages: [UIImage] = []
+    @State private var selectedImages: [UIImage]
     @State private var showImagePicker = false
+    @State private var showConsent = false
 
     // 分析結果
     @State private var analysisResult: AnalysisResult?
-    @State private var isLoading = false
+    @State private var navigateToResult = false
+    @State private var isLoading: Bool
+    @State private var loadingStep: Int
     @State private var errorMessage: String?
 
-    // 讓使用者選圖時，控制「要加到第幾張」的索引
-    @State private var imageIndexToAdd: Int?
+    @FocusState private var noteFocused: Bool
 
-    private func handleAdAndRunAnalysis() {
+    private let maxImages = 3
+
+    init(images: [UIImage] = [], note: String = "", loading: Bool = false) {
+        _selectedImages = State(initialValue: images)
+        _conversationText = State(initialValue: note)
+        _isLoading = State(initialValue: loading)
+        _loadingStep = State(initialValue: loading ? 1 : 0)
+    }
+
+    // MARK: - 判定ボタンの状態
+
+    private enum CTAState {
+        case free       // 無料回数あり
+        case extra      // 追加回数あり
+        case watchAd    // 回数なし・広告あり
+        case adLoading  // 回数なし・広告を読み込み中
+        case adFailed   // 回数なし・広告を読み込めなかった（タップで再読み込み）
+        case noAd       // 回数なし・広告の在庫なし
+    }
+
+    private var ctaState: CTAState {
+        if remainingFreeChances > 0 { return .free }
+        if extraChances > 0 { return .extra }
+        switch adManager.status {
+        case .ready:   return .watchAd
+        case .noFill:  return .noAd
+        case .loading: return .adLoading
+        case .failed:  return .adFailed
+        }
+    }
+
+    private var ctaTitle: String {
+        switch ctaState {
+        case .free:      return localized("cta_free")
+        case .extra:     return localized("cta_extra")
+        case .watchAd:   return localized("cta_ad")
+        case .adLoading: return localized("cta_ad_loading")
+        case .adFailed:  return localized("cta_ad_failed")
+        case .noAd:      return localized("cta_no_ad")
+        }
+    }
+
+    private var ctaSubtitle: String? {
+        switch ctaState {
+        case .free:      return localized("cta_free_sub", remainingFreeChances)
+        case .extra:     return localized("cta_extra_sub", extraChances)
+        case .watchAd:   return localized("cta_ad_sub")
+        case .adLoading: return localized("cta_ad_loading_sub")
+        case .adFailed:  return localized("cta_ad_failed_sub")
+        case .noAd:      return nil
+        }
+    }
+
+    // MARK: - Body
+
+    var body: some View {
+        ZStack {
+            AppBackground()
+
+            ScrollView {
+                VStack(spacing: 18) {
+                    VStack(spacing: 6) {
+                        Text("input_title")
+                            .font(Theme.rounded(24, .heavy))
+                            .foregroundColor(Theme.ink)
+                        Text("input_sub")
+                            .font(.system(size: 14))
+                            .foregroundColor(Theme.sub)
+                    }
+                    .multilineTextAlignment(.center)
+
+                    VStack(spacing: 8) {
+                        photoSlots
+                        PrivacyLine(key: "input_privacy")
+                    }
+
+                    noteField
+
+                    if let errorMessage {
+                        errorCard(errorMessage)
+                    }
+
+                    Text("disclaimer_text")
+                        .font(.footnote)
+                        .foregroundColor(Theme.sub.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
+            }
+            .scrollDismissesKeyboard(.interactively)
+
+            if isLoading {
+                loadingOverlay
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if !isLoading {
+                bottomBar
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(isLoading)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button(LocalizedStringKey("keyboard_done")) { noteFocused = false }
+            }
+        }
+        .navigationDestination(isPresented: $navigateToResult) {
+            if let result = analysisResult {
+                ResultView(result: result)
+            }
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker { uiImage in
+                guard let uiImage, selectedImages.count < maxImages else { return }
+                if let finalImage = UIImage(data: compressImage(uiImage)) {
+                    selectedImages.append(finalImage)
+                    errorMessage = nil
+                }
+            }
+        }
+        .alert(LocalizedStringKey("consent_title"), isPresented: $showConsent) {
+            Button(LocalizedStringKey("consent_agree")) {
+                aiConsentGiven = true
+                // アラートが閉じてから広告表示・分析に進む
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    startAnalysisFlow()
+                }
+            }
+            Button(LocalizedStringKey("consent_cancel"), role: .cancel) {}
+        } message: {
+            Text("consent_message")
+        }
+        .onChange(of: adManager.status) { _, status in
+            // 広告が用意できたら、広告のエラー表示は消す
+            if status == .ready, errorMessage == localized("error_ad_unavailable") {
+                errorMessage = nil
+            }
+        }
+        .onAppear {
+            Chances.resetDailyIfNeeded()
+            adManager.loadRewardedAd()
+        }
+    }
+
+    // MARK: - 写真の選択枠（枠そのものがタップ領域）
+
+    private var photoSlots: some View {
+        HStack(spacing: 10) {
+            ForEach(0..<maxImages, id: \.self) { index in
+                if index < selectedImages.count {
+                    filledSlot(index)
+                } else {
+                    emptySlot
+                }
+            }
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 20).fill(Theme.pinkSoft.opacity(0.55)))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(Theme.pink.opacity(0.7), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5]))
+        )
+    }
+
+    private func filledSlot(_ index: Int) -> some View {
+        Color.clear
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            .overlay(
+                Image(uiImage: selectedImages[index])
+                    .resizable()
+                    .scaledToFill()
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    if index < selectedImages.count { selectedImages.remove(at: index) }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, Color.black.opacity(0.55))
+                }
+                .padding(4)
+                .accessibilityLabel(Text("photo_remove"))
+            }
+    }
+
+    private var emptySlot: some View {
+        Button {
+            noteFocused = false
+            showImagePicker = true
+        } label: {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2.weight(.bold))
+                        .foregroundColor(Theme.pink)
+                )
+        }
+        .accessibilityLabel(Text("select_photo_button"))
+    }
+
+    // MARK: - 補足
+
+    private var noteField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("input_note_label")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Theme.ink)
+            TextField(
+                "",
+                text: $conversationText,
+                prompt: Text("input_note_placeholder").foregroundColor(Theme.sub.opacity(0.7)),
+                axis: .vertical
+            )
+            .lineLimit(3...5)
+            .focused($noteFocused)
+            .font(.system(size: 15))
+            .foregroundColor(Theme.ink)
+            .onChange(of: conversationText) { _, newValue in
+                if newValue.count > 300 {
+                    conversationText = String(newValue.prefix(300))
+                }
+            }
+        }
+        .card()
+    }
+
+    // MARK: - エラー（何が起きたか・回数がどうなったか）
+
+    private func errorCard(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(LocalizedStringKey("error_title"), systemImage: "exclamationmark.triangle.fill")
+                .font(.system(size: 15, weight: .bold))
+            Text(message)
+                .font(.system(size: 14))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundColor(Theme.warnInk)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.warnBg))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.warnLine, lineWidth: 1))
+    }
+
+    // MARK: - 下部バー（回数 → 判定ボタン）
+
+    private var bottomBar: some View {
+        VStack(spacing: 10) {
+            ChipView(text: localized("chip_counts", remainingFreeChances, extraChances))
+
+            Button {
+                ButtonSoundPlayer.playSound()
+                handleAnalysisTap()
+            } label: {
+                PrimaryButtonLabel(title: ctaTitle, subtitle: ctaSubtitle, enabled: ctaState != .adLoading)
+            }
+            .disabled(ctaState == .adLoading)
+
+            // 回数が残っているときだけ、追加で広告を見られる
+            if adManager.status == .ready, ctaState == .free || ctaState == .extra, !AdGate.isScreenshot {
+                Button(LocalizedStringKey("watch_ad_reward_button")) {
+                    watchAdForExtraChance()
+                }
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Theme.pink)
+            }
+
+            AdBanner()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .background(Theme.bgBottom.opacity(0.96).ignoresSafeArea(edges: .bottom))
+    }
+
+    // MARK: - 判定中
+
+    private var loadingOverlay: some View {
+        ZStack {
+            AppBackground()
+            VStack(spacing: 20) {
+                PulseView(beats: 3, animated: true)
+                    .frame(height: 56)
+                    .padding(.horizontal, 32)
+
+                Text("loading_title")
+                    .font(Theme.rounded(24, .heavy))
+                    .foregroundColor(Theme.ink)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    loadingRow("loading_step1", index: 0)
+                    loadingRow("loading_step2", index: 1)
+                    loadingRow("loading_step3", index: 2)
+                }
+                .card()
+
+                Text("loading_eta")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.sub)
+            }
+            .padding(.horizontal, 28)
+        }
+    }
+
+    private func loadingRow(_ key: LocalizedStringKey, index: Int) -> some View {
+        HStack(spacing: 10) {
+            Circle()
+                .strokeBorder(Theme.pink, lineWidth: 2)
+                .background(Circle().fill(index <= loadingStep ? Theme.pink : Color.clear))
+                .frame(width: 12, height: 12)
+            Text(key)
+                .font(.system(size: 15, weight: index <= loadingStep ? .semibold : .regular))
+                .foregroundColor(index <= loadingStep ? Theme.ink : Theme.sub)
+        }
+    }
+
+    // MARK: - タップ処理
+
+    private func handleAnalysisTap() {
+        noteFocused = false
+
         // ⓪ 入力チェックは回数消費・広告表示より先に行う
-        if conversationText.isEmpty && selectedImages.isEmpty {
-            errorMessage = NSLocalizedString("error_no_input", comment: "")
+        if conversationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedImages.isEmpty {
+            errorMessage = localized("error_no_input")
             return
         }
 
-        // ① 残り無料 or 追加チャンスがある場合 → そのまま runAnalysis()
-        //    回数は分析が成功した時点で消費する（失敗時は減らさない）
-        if remainingFreeChances > 0 || extraChances > 0 {
+        // ① 初回は、写真がAIへ送信されることに同意してもらう
+        if !aiConsentGiven {
+            showConsent = true
+            return
+        }
+
+        startAnalysisFlow()
+    }
+
+    private func startAnalysisFlow() {
+        switch ctaState {
+        case .free, .extra:
+            // 回数は分析が成功した時点で消費する（失敗時は減らさない）
             runAnalysis()
-            return
-        }
 
-        // ② チャンスがない場合 → リワード広告を表示して runAnalysis()
-        if RewardedAdManager.shared.isAdReady,
-           let rootVC = UIApplication.rootViewController {
-            RewardedAdManager.shared.showAd(
+        case .watchAd:
+            guard let rootVC = UIApplication.rootViewController else {
+                errorMessage = localized("error_ad_unavailable")
+                return
+            }
+            adManager.showAd(
                 from: rootVC,
                 onReward: {
                     // 報酬は必ず回数として付与する。分析が失敗しても回数が残り、広告なしで再試行できる
@@ -71,373 +397,34 @@ struct AnalysisView: View {
                 onDismiss: { earned in
                     // 広告が閉じてから分析を実行
                     if earned { runAnalysis() }
+                },
+                onFailure: {
+                    errorMessage = localized("error_ad_unavailable")
                 }
             )
-        }
-        // ③ 広告ロードはされたが表示できる広告がないときも分析
-        else if let lastError = RewardedAdManager.shared.lastAdLoadError,
-                lastError.contains("No ad to show") {
+
+        case .noAd:
+            // 表示できる広告がないときは、広告なしで分析
             runAnalysis(consumesChance: false)
-        }
-        // ④ それ以外（広告未ロード／準備中）はアラート表示
-        else if let rootVC = UIApplication.rootViewController {
-            let alert = UIAlertController(
-                title: NSLocalizedString("AdNotReadyTitle", comment: ""),
-                message: NSLocalizedString("AdNotReadyMessage", comment: ""),
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-            rootVC.present(alert, animated: true)
+
+        case .adFailed:
+            // 広告を読み込めなかったときは、タップで読み込み直す
+            adManager.retryLoad()
+
+        case .adLoading:
+            break
         }
     }
 
-
-    // 參考：用於 JSON Schema（你原本的程式就有定義，可留著/也可不留）
-    private var analysisResultSchema: Schema {
-        Schema(
-            type: .object,
-            properties: [
-                "couple_possibility": Schema(type: .integer),
-                "judgment_reason": Schema(type: .string),
-                "improvement_suggestion": Schema(type: .string),
-                "encouragement_message": Schema(type: .string)
-            ]
-        )
+    private func watchAdForExtraChance() {
+        guard let rootVC = UIApplication.rootViewController else { return }
+        adManager.showAd(from: rootVC, onReward: {
+            extraChances += 1
+        }, onFailure: {
+            errorMessage = localized("error_ad_unavailable")
+        })
     }
 
-    var body: some View {
-        ZStack {
-            // 背景：粉橘到奶油白漸層，外加輕微模糊
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 1.0, green: 0.85, blue: 0.85),
-                    Color(red: 1.0, green: 0.95, blue: 0.9)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            Color.white.opacity(0.2)
-                .ignoresSafeArea()
-                .blur(radius: 30)
-            
-            // 使用進場動畫效果包裹 NavigationView 整體內容
-            NavigationView {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // 次數顯示與廣告按鈕
-                        VStack(spacing: 8) {
-                            // “剩餘免費分析次數：%d”
-                               Text(String(format: NSLocalizedString("remaining_free_chances", comment: ""),
-                                           remainingFreeChances))
-                               // “額外分析次數：%d”
-                               Text(String(format: NSLocalizedString("extra_chances", comment: ""),
-                                           extraChances))
-                            Button(LocalizedStringKey("watch_ad_reward_button")) {
-                                // ここで直接広告を表示して、完了時に extraChances を +1
-                                if RewardedAdManager.shared.isAdReady,
-                                   let rootVC = UIApplication.rootViewController {
-                                    RewardedAdManager.shared.showAd(from: rootVC, onReward: {
-                                        extraChances += 1
-                                    })
-                                } else if let lastError = RewardedAdManager.shared.lastAdLoadError,
-                                          lastError.contains("No ad to show") {
-                                    // 広告がない場合でもユーザーへ回数付与したければここで
-                                    extraChances += 1
-                                } else if let rootVC = UIApplication.rootViewController {
-                                    let alert = UIAlertController(
-                                        title: NSLocalizedString("AdNotReadyTitle", comment: ""),
-                                        message: NSLocalizedString("AdNotReadyMessage", comment: ""),
-                                        preferredStyle: .alert
-                                    )
-                                    alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-                                    rootVC.present(alert, animated: true)
-                                }
-                            }
-                            .font(.subheadline)
-                        }
-                        .padding(.vertical)
-                        
-                        // ❤️ 恋のAI分析標題與說明
-                        VStack(spacing: 8) {
-                            Text("title_ai_analysis")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
-                            
-                            Label(
-                                title: { Text("photo_upload_prompt") },
-                                icon: { Image(systemName: "camera") }
-                            )
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
-                            
-                            Text("photo_upload_instruction")
-                                .font(.system(size: 13))
-                                .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3).opacity(0.6))
-                                .multilineTextAlignment(.center)
-                                .lineSpacing(5)
-                        }
-                        
-                        // 圖片選擇區
-                        imageSelectorSection
-                        
-                        // ✍️ 補足輸入區
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label(
-                                title: { Text("supplementary_input") },
-                                icon: { Image(systemName: "pencil.and.outline") }
-                            )
-                            .font(.headline)
-                            .foregroundColor(Color(red: 0.5, green: 0.3, blue: 0.3))
-                            
-                            TextEditor(text: $conversationText)
-                                .frame(height: 100)
-                                .padding(8)
-                                .background(Color.white.opacity(0.5))
-                                .cornerRadius(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                                )
-                                .onChange(of: conversationText) { newValue in
-                                    if newValue.count > 300 {
-                                        conversationText = String(newValue.prefix(300))
-                                    }
-                                }
-                        }
-                        
-                        // ⚡️ 分析開始按鈕
-                        if isLoading {
-                            ProgressView(LocalizedStringKey("loading_analysis"))
-                                .padding()
-                        } else {
-                            Button {
-                                
-                                handleAdAndRunAnalysis()
-                                
-                            } label: {
-                                Label(
-                                    title: { Text("start_analysis_button") },
-                                    icon: { Image(systemName: "bolt.fill") }
-                                )
-                                .font(.headline)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color(red: 1.0, green: 0.6, blue: 0.7))
-                                .cornerRadius(14)
-                                .foregroundColor(.white)
-                                .shadow(radius: 5)
-                            }
-                            .scaleEffect(isAnalysisButtonPressed ? 0.95 : 1.0)
-                            .animation(.easeInOut(duration: 0.2), value: isAnalysisButtonPressed)
-                            .simultaneousGesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { _ in
-                                        isAnalysisButtonPressed = true
-                                        ButtonSoundPlayer.playSound()
-                                    }
-                                    .onEnded { _ in
-                                        isAnalysisButtonPressed = false
-                                    }
-                            )
-                        }
-                        
-                        // 錯誤訊息顯示
-                        if let errorMessage = errorMessage {
-                            Text("\(NSLocalizedString("error_prefix", comment: "")) \(errorMessage)")
-                                .foregroundColor(.red)
-                                .padding()
-                        }
-                        
-                        // 分析完成後自動跳轉到 ResultView
-                        if let result = analysisResult {
-                            NavigationLink(
-                                destination: ResultView(result: result),
-                                isActive: $navigateToResult,
-                                label: { EmptyView() }
-                            )
-                            .hidden()
-                        }
-                        
-                        Spacer()  // <=== 中間空間撐開
-                        
-                        
-                        //免責
-                        Text("disclaimer_text")
-                            .font(.footnote)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                        
-                        
-                        // 廣告放底部
-                        BannerAdView(adUnitID: "ca-app-pub-9275380963550837/6056788210")
-                            .frame(height: 50)
-                    }
-                    .padding()
-                }
-                // 進場動畫：從下方移入並由透明漸進
-                .opacity(animateIn ? 1 : 0)
-                .offset(y: animateIn ? 0 : 50)
-                .animation(.easeOut(duration: 1.0), value: animateIn)
-                .navigationTitle("")
-                .navigationBarHidden(true)
-            }
-            .onAppear {
-                animateIn = true
-                if !RewardedAdManager.shared.isAdReady {
-                    RewardedAdManager.shared.loadRewardedAd()
-                }
-                // 每日重置免費次數
-                let today = Calendar.current.startOfDay(for: Date())
-                if let last = UserDefaults.standard.object(forKey: "lastFreeResetDate") as? Date {
-                    if Calendar.current.compare(today, to: last, toGranularity: .day) == .orderedDescending {
-                        remainingFreeChances = 1
-                        UserDefaults.standard.set(today, forKey: "lastFreeResetDate")
-                    }
-                } else {
-                    UserDefaults.standard.set(today, forKey: "lastFreeResetDate")
-                }
-            }
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker { uiImage in
-                    if let uiImage = uiImage, let index = imageIndexToAdd {
-                        let compressed = compressImage(uiImage)
-                        if let finalImage = UIImage(data: compressed) {
-                            if index < selectedImages.count {
-                                selectedImages[index] = finalImage
-                            } else {
-                                selectedImages.append(finalImage)
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // 🎉 成功動畫（略）
-            if showSuccessAnimation {
-                VStack {
-                    Text("🎉")
-                        .font(.system(size: 80))
-                        .scaleEffect(showSuccessAnimation ? 1.2 : 0.8)
-                        .animation(.easeInOut(duration: 0.3).repeatCount(2, autoreverses: true), value: showSuccessAnimation)
-                    
-                    Text("analysis_complete")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.pink)
-                        .padding(.top, 10)
-                        .opacity(showSuccessAnimation ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.5), value: showSuccessAnimation)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.white.opacity(0.7))
-                .transition(.opacity)
-            }
-        }
-    }
-    
-    // MARK: - 圖片顯示區
-    private var imageSelectorSection: some View {
-        VStack(spacing: 10) {
-            if selectedImages.isEmpty {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.15))
-                    .frame(height: 150)
-                    .overlay(Text("no_image_selected").foregroundColor(.gray))
-                    .cornerRadius(8)
-            } else {
-                GeometryReader { geometry in
-                    let totalWidth = geometry.size.width - 16
-                    let spacing: CGFloat = 8
-                    let totalSpacing = spacing * CGFloat(selectedImages.count - 1)
-                    let widthPerImage = (totalWidth - totalSpacing) / CGFloat(selectedImages.count)
-                    
-                    HStack(alignment: .top, spacing: spacing) {
-                        ForEach(0..<selectedImages.count, id: \.self) { index in
-                            let img = selectedImages[index]
-                            
-                            ZStack(alignment: .topTrailing) {
-                                Image(uiImage: img)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: widthPerImage)
-                                    .cornerRadius(8)
-                                
-                                Button {
-                                    selectedImages.remove(at: index)
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.title3)
-                                        .foregroundColor(.white)
-                                        .shadow(radius: 1)
-                                }
-                                .offset(x: 6, y: -6)
-                            }
-                        }
-                    }
-                    .frame(width: totalWidth)
-                }
-                .frame(height: 150)
-            }
-            
-            if selectedImages.count < 3 {
-                Button {
-                    imageIndexToAdd = selectedImages.count
-                    showImagePicker = true
-                } label: {
-                    Text(selectedImages.isEmpty ? "select_photo_button" : "add_more_photo_button")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(red: 1.0, green: 0.6, blue: 0.7))
-                        .cornerRadius(12)
-                        .foregroundColor(.white)
-                        .shadow(radius: 3)
-                }
-            }
-        }
-    }
-    
-    // MARK: - 圖片壓縮 (直到 < 1MB)
-    private func compressImage(_ image: UIImage) -> Data {
-        var compressionQuality: CGFloat = 1.0
-        var imageData = image.jpegData(compressionQuality: compressionQuality)
-        
-        let targetSize = CGSize(width: 1280, height: 720)
-        let resized = resizeImage(image: image, targetSize: targetSize)
-        imageData = resized.jpegData(compressionQuality: compressionQuality)
-        
-        while let data = imageData,
-              data.count > 1_000_000,
-              compressionQuality > 0 {
-            compressionQuality -= 0.1
-            imageData = resized.jpegData(compressionQuality: compressionQuality)
-        }
-        
-        return imageData ?? Data()
-    }
-    
-    // MARK: - 圖片縮放到 1280x720 的比例
-    private func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
-        let widthRatio  = targetSize.width  / image.size.width
-        let heightRatio = targetSize.height / image.size.height
-        let scale = min(widthRatio, heightRatio)
-        
-        let newSize = CGSize(
-            width: image.size.width * scale,
-            height: image.size.height * scale
-        )
-        
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return newImage ?? image
-    }
-    
-    // MARK: - 分析執行
     // 成功時に回数を1つ消費（無料分 → 追加分の順）
     private func consumeChance() {
         if remainingFreeChances > 0 {
@@ -447,37 +434,78 @@ struct AnalysisView: View {
         }
     }
 
-    func runAnalysis(consumesChance: Bool = true) {
-        // 使用 localized 讀取錯誤文字
-        if conversationText.isEmpty && selectedImages.isEmpty {
-            errorMessage = NSLocalizedString("error_no_input", comment: "")
-            return
+    // MARK: - 圖片壓縮 (直到 < 1MB)
+    private func compressImage(_ image: UIImage) -> Data {
+        var compressionQuality: CGFloat = 0.9
+        let resized = resizeImage(image: image, targetSize: CGSize(width: 1280, height: 1280))
+        var imageData = resized.jpegData(compressionQuality: compressionQuality)
+
+        while let data = imageData,
+              data.count > 1_000_000,
+              compressionQuality > 0.1 {
+            compressionQuality -= 0.1
+            imageData = resized.jpegData(compressionQuality: compressionQuality)
         }
+
+        return imageData ?? Data()
+    }
+
+    // MARK: - 長辺を targetSize に収める（拡大はしない）
+    private func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
+        let widthRatio  = targetSize.width  / image.size.width
+        let heightRatio = targetSize.height / image.size.height
+        let scale = min(widthRatio, heightRatio, 1.0)
+
+        let newSize = CGSize(
+            width: image.size.width * scale,
+            height: image.size.height * scale
+        )
+
+        UIGraphicsBeginImageContextWithOptions(newSize, true, 1.0)
+        image.draw(in: CGRect(origin: .zero, size: newSize))
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return newImage ?? image
+    }
+
+    // MARK: - 分析執行
+
+    private func finishAnalysis(errorKey: String) {
+        DispatchQueue.main.async {
+            self.isLoading = false
+            self.errorMessage = localized(errorKey)
+        }
+    }
+
+    func runAnalysis(consumesChance: Bool = true) {
+        guard !isLoading else { return }
         errorMessage = nil
         isLoading = true
-        
-        let systemInstructionText = NSLocalizedString("gemini_system_prompt", comment: "")
+        loadingStep = 0
+        // 進行表示（実際の処理段階ではなく、待ち時間の目安）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { if isLoading { loadingStep = 1 } }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) { if isLoading { loadingStep = 2 } }
+
         let systemInstructionObject: [String: Any] = [
             "parts": [
-                ["text": systemInstructionText]
+                ["text": NSLocalizedString("gemini_system_prompt", comment: "")]
             ]
         ]
-        
+
         // 補充內容：使用 localized 補充前置字串
         let conversationTextCombined = NSLocalizedString("supplementary_prefix", comment: "") + conversationText
-        let conversationPart: [String: Any] = [
+        var contents: [[String: Any]] = [[
             "role": "user",
             "parts": [
                 ["text": conversationTextCombined]
             ]
-        ]
-        var contents: [[String: Any]] = [conversationPart]
-        
+        ]]
+
         for img in selectedImages {
-            let compressedData = compressImage(img)
-            let base64String = compressedData.base64EncodedString()
-            
-            let imagePart: [String: Any] = [
+            // 選択時に圧縮済みなので、ここでは再圧縮しない
+            let base64String = (img.jpegData(compressionQuality: 0.85) ?? Data()).base64EncodedString()
+            contents.append([
                 "role": "user",
                 "parts": [
                     [
@@ -487,10 +515,9 @@ struct AnalysisView: View {
                         ]
                     ]
                 ]
-            ]
-            contents.append(imagePart)
+            ])
         }
-        
+
         // モデルはプロキシ側で決める（アプリに固定すると提供終了時に全ユーザーが失敗する）
         let payload: [String: Any] = [
             "system_instruction": systemInstructionObject,
@@ -499,24 +526,19 @@ struct AnalysisView: View {
                 "temperature": 0.3,
                 "topP": 0.95,
                 "topK": 10,
-                "maxOutputTokens": 512,
+                "maxOutputTokens": 1024,
             ]
         ]
-        
-        guard let url = URL(string: "https://gemini-api-key-proxy-731897587704.us-central1.run.app") else {
-            self.errorMessage = NSLocalizedString("error_invalid_url", comment: "")
-            self.isLoading = false
+
+        guard let url = URL(string: "https://gemini-api-key-proxy-731897587704.us-central1.run.app"),
+              let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            finishAnalysis(errorKey: "error_service_unavailable")
             return
         }
-        
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
-            self.errorMessage = NSLocalizedString("error_create_request", comment: "")
-            self.isLoading = false
-            return
-        }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = 60
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let authorizationKey = Bundle.main.authorizationKey {
             request.setValue("Bearer \(authorizationKey)", forHTTPHeaderField: "Authorization")
@@ -524,73 +546,48 @@ struct AnalysisView: View {
             print("⚠️ Error: Authorization key not found in Info.plist")
         }
         request.httpBody = jsonData
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                self.isLoading = false
-            }
-            
             if let error = error {
-                DispatchQueue.main.async {
-                    // 使用 sprintf 格式化 localized 錯誤字串
-                    self.errorMessage = String(format: NSLocalizedString("error_api", comment: ""), error.localizedDescription)
-                }
+                print("❌ Network error: \(error.localizedDescription)")
+                finishAnalysis(errorKey: "error_network")
                 return
             }
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self.errorMessage = NSLocalizedString("error_no_data", comment: "")
-                }
-                return
-            }
-            
+
             // HTTP エラー（プロキシ／Gemini 側の障害）は内部エラー文言を出さず、再試行を案内する
-            if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-                print("❌ API status \(http.statusCode)")
-                DispatchQueue.main.async {
-                    self.errorMessage = NSLocalizedString("error_service_unavailable", comment: "")
-                }
+            guard let data = data,
+                  let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                print("❌ API status \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+                finishAnalysis(errorKey: "error_service_unavailable")
                 return
             }
 
-            do {
-                if let rawJson = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            guard let rawJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                finishAnalysis(errorKey: "error_service_unavailable")
+                return
+            }
 
-                    if let candidates = rawJson["candidates"] as? [[String: Any]],
-                       let firstCandidate = candidates.first,
-                       let content = firstCandidate["content"] as? [String: Any],
-                       let parts = content["parts"] as? [[String: Any]],
-                       let text = parts.first?["text"] as? String {
-                        
-                        let jsonData = Data(text.utf8)
-                        let decodedResult = try JSONDecoder().decode(AnalysisResult.self, from: jsonData)
-                        
-                        DispatchQueue.main.async {
-                            if consumesChance { self.consumeChance() }
-                            self.analysisResult = decodedResult
-                            self.showSuccessAnimation = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                self.showSuccessAnimation = false
-                                self.navigateToResult = true
-                            }
-                        }
-                        
-                    } else {
-                        // 200 だが候補なし = 安全フィルタ等で回答が生成されなかった
-                        DispatchQueue.main.async {
-                            self.errorMessage = NSLocalizedString("error_cannot_judge", comment: "")
-                        }
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.errorMessage = NSLocalizedString("error_service_unavailable", comment: "")
-                    }
-                }
-            } catch {
-                print("❌ Decode error: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.errorMessage = NSLocalizedString("error_service_unavailable", comment: "")
-                }
+            // 200 だが候補なし = 安全フィルタ等で回答が生成されなかった
+            guard let candidates = rawJson["candidates"] as? [[String: Any]],
+                  let content = candidates.first?["content"] as? [String: Any],
+                  let parts = content["parts"] as? [[String: Any]],
+                  let text = parts.first?["text"] as? String else {
+                finishAnalysis(errorKey: "error_cannot_judge")
+                return
+            }
+
+            guard let decodedResult = try? JSONDecoder().decode(AnalysisResult.self, from: Data(text.utf8)) else {
+                print("❌ Decode error")
+                finishAnalysis(errorKey: "error_service_unavailable")
+                return
+            }
+
+            DispatchQueue.main.async {
+                if consumesChance { self.consumeChance() }
+                self.hasCompletedAnalysis = true
+                self.analysisResult = decodedResult
+                self.isLoading = false
+                self.navigateToResult = true
             }
         }.resume()
     }
