@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""App Store 用スクリーンショット（1320x2868, 6.9インチ）を生成する。
+"""App Store 用スクリーンショット（6.9インチ 1320x2868 と 6.3インチ 1206x2622）を生成する。
 
   python3 appstore/tools/make_screenshots.py [作業用ディレクトリ]
 
 screenshots-raw/<言語>/<画面>.png（シミュレータの素の画面）に見出しと端末枠を付けて
-screenshots/<言語>/ に書き出す。Google Chrome と Pillow が必要。
+screenshots/<言語>/ と screenshots-6.3/<言語>/ に書き出す。Google Chrome と Pillow が必要。
 """
 import html, pathlib, subprocess, sys, tempfile
 from PIL import Image
@@ -12,6 +12,7 @@ from PIL import Image
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 W, H = 1320, 2868
+SMALL = (1206, 2622)
 
 # 掲載順: 結果 → 入力 → 判定中 → ホーム
 SLIDES = ["result", "input", "loading", "home"]
@@ -57,6 +58,10 @@ def main():
             image = Image.open(shot).convert("RGB")
             assert image.size == (W, H), image.size
             image.save(out_dir / f"{i:02d}_{slide}.png")
+            # 6.3インチ用（1206x2622）。縦横比がほぼ同じなので縮小するだけ
+            small_dir = ROOT / "screenshots-6.3" / lang
+            small_dir.mkdir(parents=True, exist_ok=True)
+            image.resize(SMALL, Image.LANCZOS).save(small_dir / f"{i:02d}_{slide}.png")
             print(out_dir.name, f"{i:02d}_{slide}.png")
 
 if __name__ == "__main__":
