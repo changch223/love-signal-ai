@@ -1,1 +1,8 @@
 GenerativeAI-Info.plist
+# プロキシの認証トークン（雛形は Config/Secrets.swift.example）
+myakuari/Secrets.swift
+
+.DS_Store
+xcuserdata/
+*.xcuserstate
+.obsidian/

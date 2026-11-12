@@ -114,3 +114,4 @@
 "cta_ad_failed" = "广告加载失败";
 "cta_ad_failed_sub" = "点击重新加载";
 "error_ad_unavailable" = "无法显示广告，请稍后再试。";
+"error_rate_limited" = "当前访问过于集中。次数没有减少，请稍后再试。";

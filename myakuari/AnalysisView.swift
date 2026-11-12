@@ -540,11 +540,7 @@ struct AnalysisView: View {
         request.httpMethod = "POST"
         request.timeoutInterval = 60
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let authorizationKey = Bundle.main.authorizationKey {
-            request.setValue("Bearer \(authorizationKey)", forHTTPHeaderField: "Authorization")
-        } else {
-            print("⚠️ Error: Authorization key not found in Info.plist")
-        }
+        request.setValue("Bearer \(Secrets.apiAuthorizationKey)", forHTTPHeaderField: "Authorization")
         request.httpBody = jsonData
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -555,6 +551,12 @@ struct AnalysisView: View {
             }
 
             // HTTP エラー（プロキシ／Gemini 側の障害）は内部エラー文言を出さず、再試行を案内する
+            // 429 = プロキシの回数制限。時間をおいての再試行を案内する
+            if let http = response as? HTTPURLResponse, http.statusCode == 429 {
+                finishAnalysis(errorKey: "error_rate_limited")
+                return
+            }
+
             guard let data = data,
                   let http = response as? HTTPURLResponse, http.statusCode == 200 else {
                 print("❌ API status \((response as? HTTPURLResponse)?.statusCode ?? -1)")
@@ -603,12 +605,5 @@ extension UIApplication {
             .windows
             .first(where: { $0.isKeyWindow })?
             .rootViewController
-    }
-}
-
-// 一個小的 helper，從 Info.plist 讀取字串
-extension Bundle {
-    var authorizationKey: String? {
-        return infoDictionary?["API_AUTHORIZATION_KEY"] as? String
     }
 }

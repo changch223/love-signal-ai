@@ -113,3 +113,4 @@
 "cta_ad_failed" = "廣告載入失敗";
 "cta_ad_failed_sub" = "點擊重新載入";
 "error_ad_unavailable" = "無法顯示廣告，請稍後再試。";
+"error_rate_limited" = "目前使用人數過多。次數沒有減少，請稍後再試。";

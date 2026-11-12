@@ -107,3 +107,4 @@
 "cta_ad_failed" = "Couldn't Load an Ad";
 "cta_ad_failed_sub" = "Tap to try loading again";
 "error_ad_unavailable" = "The ad couldn't be shown. Please wait a moment and try again.";
+"error_rate_limited" = "Too many requests right now. No analysis was used. Please try again in a little while.";
